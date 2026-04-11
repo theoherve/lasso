@@ -1,53 +1,40 @@
 "use client"
 
-import { use, useState } from "react"
+import { use, useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, MapPin, Clock, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, MapPin, Clock, Users, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { AssociationBadge } from "@/components/lasso/AssociationBadge"
 import { SlotPicker } from "@/components/lasso/SlotPicker"
 
-const mockMission = {
-  id: "1",
-  title: "Distribution de repas aux sans-abris",
-  category: "aide_personne",
-  description:
-    "Rejoins notre equipe pour distribuer des repas chauds aux personnes en situation de precarite dans le 3e arrondissement. Nous fournissons tout le materiel necessaire. Viens avec le sourire et de bonnes chaussures !",
-  durationMin: 120,
-  address: "12 rue du Faubourg Saint-Martin, 75003 Paris",
+interface Slot {
+  id: string
+  startsAt: string
+  endsAt: string
+  spotsRemaining: number
+  spotsTotal: number
+  status: string
+}
+
+interface MissionDetail {
+  id: string
+  title: string
+  category: string
+  description: string
+  durationMin: number
+  address: string | null
   association: {
-    name: "Les Restos du Coeur",
-    logoUrl: null,
-    humanValidated: true,
-  },
-  slots: [
-    {
-      id: "slot-1",
-      startsAt: "2026-04-15T09:00:00Z",
-      endsAt: "2026-04-15T11:00:00Z",
-      spotsRemaining: 4,
-      spotsTotal: 10,
-      status: "OPEN",
-    },
-    {
-      id: "slot-2",
-      startsAt: "2026-04-16T09:00:00Z",
-      endsAt: "2026-04-16T11:00:00Z",
-      spotsRemaining: 1,
-      spotsTotal: 10,
-      status: "OPEN",
-    },
-    {
-      id: "slot-3",
-      startsAt: "2026-04-17T09:00:00Z",
-      endsAt: "2026-04-17T11:00:00Z",
-      spotsRemaining: 0,
-      spotsTotal: 10,
-      status: "FULL",
-    },
-  ],
+    name: string
+    slug: string
+    logoUrl: string | null
+    arrondissement: number
+    humanValidated: boolean
+  }
+  slots: Slot[]
 }
 
 export default function MissionDetailPage({
@@ -56,10 +43,70 @@ export default function MissionDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
+  const router = useRouter()
+  const [mission, setMission] = useState<MissionDetail | null>(null)
+  const [loading, setLoading] = useState(true)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
+  const [booking, setBooking] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // In a real app, fetch mission by id
-  const mission = mockMission
+  useEffect(() => {
+    fetch(`/api/missions/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("not found")
+        return res.json()
+      })
+      .then(setMission)
+      .catch(() => setMission(null))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  async function handleBook() {
+    if (!selectedSlot) return
+    setBooking(true)
+    setError(null)
+
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slotId: selectedSlot }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error ?? "Erreur lors de la reservation")
+        return
+      }
+
+      router.push(`/mission/${id}/book`)
+    } finally {
+      setBooking(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-32 rounded-lg" />
+        <Skeleton className="h-24 rounded-lg" />
+        <Skeleton className="h-40 rounded-lg" />
+      </div>
+    )
+  }
+
+  if (!mission) {
+    return (
+      <div className="py-12 text-center">
+        <p className="text-muted-foreground">Mission introuvable.</p>
+        <Button variant="outline" className="mt-4" render={<Link href="/feed" />}>
+          Retour au feed
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -120,8 +167,13 @@ export default function MissionDetailPage({
         />
       </div>
 
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
+      )}
+
       {selectedSlot ? (
-        <Button className="w-full" size="lg" render={<Link href={`/mission/${id}/book?slot=${selectedSlot}`} />}>
+        <Button className="w-full" size="lg" onClick={handleBook} disabled={booking}>
+          {booking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Je reserve
         </Button>
       ) : (

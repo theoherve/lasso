@@ -10,9 +10,32 @@ export async function GET(
   try {
     const { id } = await params
 
-    // TODO: include relations (slots, association) as needed
     const mission = await prisma.mission.findUnique({
       where: { id },
+      include: {
+        association: {
+          select: {
+            name: true,
+            slug: true,
+            logoUrl: true,
+            arrondissement: true,
+            humanValidated: true,
+          },
+        },
+        slots: {
+          where: {
+            startsAt: { gte: new Date() },
+          },
+          orderBy: { startsAt: "asc" },
+          include: {
+            _count: {
+              select: {
+                bookings: { where: { status: "CONFIRMED" } },
+              },
+            },
+          },
+        },
+      },
     })
 
     if (!mission) {
@@ -22,7 +45,19 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(mission)
+    const result = {
+      ...mission,
+      slots: mission.slots.map((slot) => ({
+        id: slot.id,
+        startsAt: slot.startsAt,
+        endsAt: slot.endsAt,
+        spotsTotal: slot.spotsTotal,
+        spotsRemaining: slot.spotsTotal - slot._count.bookings,
+        status: slot.spotsTotal - slot._count.bookings <= 0 ? "FULL" : slot.status,
+      })),
+    }
+
+    return NextResponse.json(result)
   } catch (error) {
     console.error("[MISSION_GET]", error)
     return NextResponse.json(

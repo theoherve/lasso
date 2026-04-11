@@ -19,30 +19,71 @@ export async function POST(request: Request) {
       )
     }
 
-    // TODO: use prisma.$transaction to atomically:
-    // 1. Check the slot exists and has available spots (spotsTotal - current bookings > 0)
-    // 2. Check the user hasn't already booked this slot
-    // 3. Create the booking
-    // This prevents race conditions on slot capacity.
     const booking = await prisma.$transaction(async (tx) => {
       const slot = await tx.slot.findUniqueOrThrow({
         where: { id: parsed.data.slotId },
-        include: { _count: { select: { bookings: true } } },
       })
 
-      // TODO: compare slot._count.bookings < slot.spotsTotal
-      // TODO: check for duplicate booking by session.user.id + slotId
+      if (slot.status !== "OPEN") {
+        throw new Error("SLOT_NOT_OPEN")
+      }
+
+      const confirmedCount = await tx.booking.count({
+        where: { slotId: slot.id, status: "CONFIRMED" },
+      })
+
+      if (confirmedCount >= slot.spotsTotal) {
+        throw new Error("SLOT_FULL")
+      }
+
+      const existing = await tx.booking.findUnique({
+        where: {
+          userId_slotId: {
+            userId: session.user.id,
+            slotId: slot.id,
+          },
+        },
+      })
+
+      if (existing) {
+        throw new Error("ALREADY_BOOKED")
+      }
 
       return tx.booking.create({
         data: {
-          slotId: parsed.data.slotId,
+          slotId: slot.id,
           userId: session.user.id,
+        },
+        include: {
+          slot: {
+            include: { mission: { select: { id: true, title: true } } },
+          },
         },
       })
     })
 
     return NextResponse.json(booking, { status: 201 })
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "SLOT_NOT_OPEN") {
+        return NextResponse.json(
+          { error: "Ce creneau n'est plus disponible" },
+          { status: 409 },
+        )
+      }
+      if (error.message === "SLOT_FULL") {
+        return NextResponse.json(
+          { error: "Ce creneau est complet" },
+          { status: 409 },
+        )
+      }
+      if (error.message === "ALREADY_BOOKED") {
+        return NextResponse.json(
+          { error: "Tu as deja reserve ce creneau" },
+          { status: 409 },
+        )
+      }
+    }
     console.error("[BOOKINGS_POST]", error)
     return NextResponse.json(
       { error: "Erreur lors de la reservation" },

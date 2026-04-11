@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useEffect, useState, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { FilterChips } from "@/components/lasso/FilterChips"
 import { MissionCard } from "@/components/lasso/MissionCard"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const categoryOptions = [
   { value: "aide_personne", label: "Aide a la personne" },
@@ -11,106 +13,130 @@ const categoryOptions = [
   { value: "autre", label: "Autre" },
 ]
 
-const arrondissementOptions = [
-  { value: "3", label: "3e" },
-  { value: "5", label: "5e" },
-  { value: "11", label: "11e" },
-  { value: "18", label: "18e" },
-  { value: "20", label: "20e" },
-]
+const arrondissementOptions = Array.from({ length: 20 }, (_, i) => ({
+  value: String(i + 1),
+  label: `${i + 1}e`,
+}))
 
-const mockMissions = [
-  {
-    id: "1",
-    title: "Distribution de repas aux sans-abris",
-    category: "aide_personne",
-    durationMin: 120,
-    address: "12 rue du Faubourg Saint-Martin",
-    association: { name: "Les Restos du Coeur", logoUrl: null, arrondissement: 3 },
-    nextSlot: {
-      startsAt: "2026-04-15T09:00:00Z",
-      spotsRemaining: 4,
-    },
-  },
-  {
-    id: "2",
-    title: "Nettoyage des berges du Canal Saint-Martin",
-    category: "environnement",
-    durationMin: 180,
-    address: "Quai de Valmy",
-    association: { name: "Clean Walk Paris", logoUrl: null, arrondissement: 11 },
-    nextSlot: {
-      startsAt: "2026-04-16T10:00:00Z",
-      spotsRemaining: 8,
-    },
-  },
-  {
-    id: "3",
-    title: "Soutien scolaire college",
-    category: "education",
-    durationMin: 90,
-    address: "45 rue de Belleville",
-    association: { name: "AFEV Paris", logoUrl: null, arrondissement: 20 },
-    nextSlot: {
-      startsAt: "2026-04-17T14:00:00Z",
-      spotsRemaining: 2,
-    },
-  },
-  {
-    id: "4",
-    title: "Maraude de nuit - Gare du Nord",
-    category: "aide_personne",
-    durationMin: 240,
-    address: "Gare du Nord",
-    association: { name: "Utopia 56", logoUrl: null, arrondissement: 18 },
-    nextSlot: {
-      startsAt: "2026-04-18T20:00:00Z",
-      spotsRemaining: 6,
-    },
-  },
-]
+interface Mission {
+  id: string
+  title: string
+  category: string
+  durationMin: number
+  address: string | null
+  association: {
+    name: string
+    slug: string
+    logoUrl: string | null
+    arrondissement: number
+  }
+  nextSlot: {
+    startsAt: string
+    spotsRemaining: number
+  } | null
+}
 
-export default function FeedPage() {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedArrondissements, setSelectedArrondissements] = useState<string[]>([])
+function FeedContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const filteredMissions = mockMissions.filter((mission) => {
-    const matchCategory =
-      selectedCategories.length === 0 || selectedCategories.includes(mission.category)
-    const matchArrondissement =
-      selectedArrondissements.length === 0 ||
-      selectedArrondissements.includes(String(mission.association.arrondissement))
-    return matchCategory && matchArrondissement
-  })
+  const selectedCategories = searchParams.get("category")?.split(",").filter(Boolean) ?? []
+  const selectedArrondissements = searchParams.get("arrondissement")?.split(",").filter(Boolean) ?? []
+
+  const [missions, setMissions] = useState<Mission[]>([])
+  const [loading, setLoading] = useState(true)
+
+  function updateParams(key: string, values: string[]) {
+    const params = new URLSearchParams(searchParams.toString())
+    if (values.length > 0) {
+      params.set(key, values.join(","))
+    } else {
+      params.delete(key)
+    }
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }
+
+  const fetchMissions = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (selectedCategories.length > 0) params.set("category", selectedCategories.join(","))
+      if (selectedArrondissements.length > 0) params.set("arrondissement", selectedArrondissements.join(","))
+
+      const res = await fetch(`/api/missions?${params.toString()}`)
+      if (res.ok) {
+        setMissions(await res.json())
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [searchParams.toString()])
+
+  useEffect(() => {
+    fetchMissions()
+  }, [fetchMissions])
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Missions disponibles</h2>
-
+    <>
       <div className="space-y-3">
         <FilterChips
           options={categoryOptions}
           selected={selectedCategories}
-          onChange={setSelectedCategories}
+          onChange={(v) => updateParams("category", v)}
         />
         <FilterChips
           options={arrondissementOptions}
           selected={selectedArrondissements}
-          onChange={setSelectedArrondissements}
+          onChange={(v) => updateParams("arrondissement", v)}
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {filteredMissions.map((mission) => (
-          <MissionCard key={mission.id} mission={mission} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-56 rounded-lg" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {missions.map((mission) => (
+            <MissionCard key={mission.id} mission={mission} />
+          ))}
+        </div>
+      )}
 
-      {filteredMissions.length === 0 && (
+      {!loading && missions.length === 0 && (
         <p className="py-12 text-center text-muted-foreground">
           Aucune mission ne correspond a tes filtres.
         </p>
       )}
+    </>
+  )
+}
+
+function FeedFallback() {
+  return (
+    <>
+      <div className="space-y-3">
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-full" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-56 rounded-lg" />
+        ))}
+      </div>
+    </>
+  )
+}
+
+export default function FeedPage() {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Missions disponibles</h2>
+      <Suspense fallback={<FeedFallback />}>
+        <FeedContent />
+      </Suspense>
     </div>
   )
 }
