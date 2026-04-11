@@ -396,100 +396,100 @@ _A planifier apres validation du scaffold (Phase 0). Voici les grandes taches an
 _Cocher chaque etape au fur et a mesure de l'avancement._
 
 ## Phase A — Setup initial
-- [ ] T-001 : Initialiser Next.js 15 avec pnpm
-- [ ] T-002 : Configurer Tailwind CSS v4 + variables CSS design system
-- [ ] T-003 : Initialiser shadcn/ui avec theme custom Lasso
-- [ ] T-004 : Installer Plus Jakarta Sans (Google Fonts)
-- [ ] T-005 : Configurer ESLint + Prettier
-- [ ] T-006 : Creer .env.example + .env.local
+- [x] T-001 : Initialiser Next.js 15 avec pnpm
+- [x] T-002 : Configurer Tailwind CSS v4 + variables CSS design system
+- [x] T-003 : Initialiser shadcn/ui avec theme custom Lasso
+- [x] T-004 : Installer Plus Jakarta Sans (Google Fonts)
+- [x] T-005 : Configurer ESLint + Prettier
+- [x] T-006 : Creer .env.example + .env.local
 
 ## Phase B — Base de donnees
 - [ ] T-010 : Creer la base Neon + DATABASE_URL
-- [ ] T-011 : Creer prisma/schema.prisma complet (10 models, 4 enums)
+- [x] T-011 : Creer prisma/schema.prisma complet (10 models, 4 enums)
 - [ ] T-012 : Executer la premiere migration
-- [ ] T-013 : Creer lib/prisma.ts (singleton)
+- [x] T-013 : Creer lib/prisma.ts (singleton + adapter Neon)
 
 ## Phase C — Authentification
-- [ ] T-020 : Configurer NextAuth v5 (lib/auth.ts) — Credentials + Google
-- [ ] T-021 : Creer api/auth/[...nextauth]/route.ts
-- [ ] T-022 : Etendre les types NextAuth (types/index.ts)
-- [ ] T-023 : Creer lib/auth-helpers.ts (getSession, requireAuth, requireRole)
-- [ ] T-024 : Creer middleware.ts (protection routes par role)
-- [ ] T-025 : Creer les pages /login et /register
-- [ ] T-026 : Creer SessionProvider + ThemeProvider
+- [x] T-020 : Configurer NextAuth v5 (lib/auth.ts) — Credentials + Google
+- [x] T-021 : Creer api/auth/[...nextauth]/route.ts
+- [x] T-022 : Etendre les types NextAuth (types/index.ts)
+- [x] T-023 : Creer lib/auth-helpers.ts (getSession, requireAuth, requireRole)
+- [x] T-024 : Creer middleware.ts (protection routes par role)
+- [x] T-025 : Creer les pages /login et /register
+- [x] T-026 : Creer SessionProvider + ThemeProvider
 
 ## Phase D — Utils & Validation
-- [ ] T-070 : Creer lib/validations/ (Zod schemas mission, booking, user, association)
-- [ ] T-071 : Creer lib/rna.ts (mock dev / reel prod)
-- [ ] T-091 : Creer lib/utils.ts (cn, formatDate, formatDuration, formatArrondissement)
+- [x] T-070 : Creer lib/validations/ (Zod schemas mission, booking, user, association)
+- [x] T-071 : Creer lib/rna.ts (mock dev / reel prod)
+- [x] T-091 : Creer lib/utils.ts (cn, formatDate, formatDuration, formatArrondissement)
 
 ## Phase E — Composants layout
-- [ ] T-032 : BottomTabNav.tsx (nav mobile benevole)
-- [ ] T-034 : AssociationSidebar.tsx (sidebar desktop asso)
-- [ ] T-036 : AdminSidebar.tsx (sidebar desktop admin)
+- [x] T-032 : BottomTabNav.tsx (nav mobile benevole)
+- [x] T-034 : AssociationSidebar.tsx (sidebar desktop asso)
+- [x] T-036 : AdminSidebar.tsx (sidebar desktop admin)
 
 ## Phase F — Composants Lasso
-- [ ] T-040 : MissionCard.tsx
-- [ ] T-041 : StatusBadge.tsx (CVA variants)
-- [ ] T-042 : ReliabilityScore.tsx
-- [ ] T-043 : AssociationBadge.tsx
-- [ ] T-044 : SlotPicker.tsx
-- [ ] T-045 : VolunteerRow.tsx
-- [ ] T-046 : MapPlaceholder.tsx
-- [ ] T-047 : EmptyState.tsx
-- [ ] T-048 : FilterChips.tsx
+- [x] T-040 : MissionCard.tsx
+- [x] T-041 : StatusBadge.tsx (CVA variants)
+- [x] T-042 : ReliabilityScore.tsx
+- [x] T-043 : AssociationBadge.tsx
+- [x] T-044 : SlotPicker.tsx
+- [x] T-045 : VolunteerRow.tsx
+- [x] T-046 : MapPlaceholder.tsx
+- [x] T-047 : EmptyState.tsx
+- [x] T-048 : FilterChips.tsx
 
 ## Phase G — Layouts App Router
-- [ ] T-030 : Root layout.tsx (font, providers, metadata)
-- [ ] T-037 : Layout (auth) — centré, warm bg
-- [ ] T-031 : Layout (volunteer) — BottomTabNav mobile
-- [ ] T-033 : Layout (association) — Sidebar desktop
-- [ ] T-035 : Layout (admin) — Sidebar sombre desktop
+- [x] T-030 : Root layout.tsx (font, providers, metadata)
+- [x] T-037 : Layout (auth) — centré, warm bg
+- [x] T-031 : Layout (volunteer) — BottomTabNav mobile
+- [x] T-033 : Layout (association) — Sidebar desktop
+- [x] T-035 : Layout (admin) — Sidebar sombre desktop
 
 ## Phase H — Pages (~25 pages)
-- [ ] T-050 : Landing page /
-- [ ] T-051 : /feed — feed missions
-- [ ] T-052 : /map — placeholder carte
-- [ ] T-053 : /missions — mes missions
-- [ ] T-054 : /profile — profil benevole
-- [ ] T-055 : /mission/[id] — fiche mission
-- [ ] T-056 : /mission/[id]/book — confirmation reservation
-- [ ] T-057 : /association/dashboard
-- [ ] T-058 : /association/missions
-- [ ] T-059 : /association/missions/new
-- [ ] T-060 : /association/volunteers
-- [ ] T-061 : /association/stats
-- [ ] T-062 : /admin (dashboard)
-- [ ] T-063 : /admin/users
-- [ ] T-064 : /admin/associations
-- [ ] T-065 : /admin/missions
-- [ ] T-066 : /admin/no-shows
-- [ ] T-067 : Pages publiques /associations + /associations/[slug]
+- [x] T-050 : Landing page /
+- [x] T-051 : /feed — feed missions
+- [x] T-052 : /map — placeholder carte
+- [x] T-053 : /missions — mes missions
+- [x] T-054 : /profile — profil benevole
+- [x] T-055 : /mission/[id] — fiche mission
+- [x] T-056 : /mission/[id]/book — confirmation reservation
+- [x] T-057 : /association/dashboard
+- [x] T-058 : /association/missions
+- [x] T-059 : /association/missions/new
+- [x] T-060 : /association/volunteers
+- [x] T-061 : /association/stats
+- [x] T-062 : /admin (dashboard)
+- [x] T-063 : /admin/users
+- [x] T-064 : /admin/associations
+- [x] T-065 : /admin/missions
+- [x] T-066 : /admin/no-shows
+- [x] T-067 : Pages publiques /associations + /associations/[slug]
 
 ## Phase I — Routes API
-- [ ] T-072 : GET/POST /api/missions
-- [ ] T-073 : GET/PATCH/DELETE /api/missions/[id]
-- [ ] T-074 : GET/POST /api/missions/[id]/slots
-- [ ] T-075 : POST /api/bookings (transaction atomique)
-- [ ] T-076 : DELETE /api/bookings/[id]
-- [ ] T-077 : GET/PATCH /api/users/me + GET /api/users/me/bookings
-- [ ] T-078 : POST/PATCH /api/associations + /api/associations/[id]
-- [ ] T-079 : GET /api/associations/[id]/bookings
-- [ ] T-080 : POST /api/no-shows
-- [ ] T-081 : POST /api/ratings
-- [ ] T-082 : Routes admin /api/admin/*
+- [x] T-072 : GET/POST /api/missions
+- [x] T-073 : GET/PATCH/DELETE /api/missions/[id]
+- [x] T-074 : GET/POST /api/missions/[id]/slots
+- [x] T-075 : POST /api/bookings (transaction atomique)
+- [x] T-076 : DELETE /api/bookings/[id]
+- [x] T-077 : GET/PATCH /api/users/me + GET /api/users/me/bookings
+- [x] T-078 : POST/PATCH /api/associations + /api/associations/[id]
+- [x] T-079 : GET /api/associations/[id]/bookings
+- [x] T-080 : POST /api/no-shows
+- [x] T-081 : POST /api/ratings
+- [x] T-082 : Routes admin /api/admin/*
 
 ## Phase J — Seed & Documentation
-- [ ] T-014 : Creer prisma/seed.ts (3 assos, 10 missions, 5 benevoles, admin, asso manager)
+- [x] T-014 : Creer prisma/seed.ts (3 assos, 10 missions, 5 benevoles, admin, asso manager)
 - [ ] T-015 : Executer et valider le seed
-- [ ] T-090 : Creer README.md avec guide setup complet
+- [x] T-090 : Creer README.md avec guide setup complet
 
 ## Phase K — Validation finale
-- [ ] T-092 : `pnpm prisma generate` sans erreur
-- [ ] T-092 : `pnpm build` sans erreur TypeScript
-- [ ] T-093 : Routes protegees redirigent vers /login
-- [ ] T-094 : Design system visible sur la landing page
-- [ ] T-094 : Tous les composants compilent avec leurs props typees
+- [x] T-092 : `pnpm prisma generate` sans erreur
+- [x] T-092 : `pnpm build` sans erreur TypeScript
+- [ ] T-093 : Routes protegees redirigent vers /login (necessite DATABASE_URL)
+- [x] T-094 : Design system visible sur la landing page
+- [x] T-094 : Tous les composants compilent avec leurs props typees
 
 ---
 

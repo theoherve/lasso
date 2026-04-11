@@ -46,75 +46,135 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Lasso custom colors */
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-confirmed-bg: var(--status-confirmed-bg);
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-bg: var(--status-pending-bg);
+  --color-status-noshow: var(--status-noshow);
+  --color-status-noshow-bg: var(--status-noshow-bg);
+  --color-status-open: var(--status-open);
+  --color-status-open-bg: var(--status-open-bg);
+  --color-status-full: var(--status-full);
+  --color-status-full-bg: var(--status-full-bg);
+  --color-status-completed: var(--status-completed);
+  --color-status-completed-bg: var(--status-completed-bg);
+
+  /* Lasso shadows */
+  --shadow-warm: 0 2px 12px -2px hsl(30 30% 50% / 0.12);
+  --shadow-warm-lg: 0 8px 30px -4px hsl(30 30% 50% / 0.15);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Lasso Design System - Warm Terracotta & Forest */
+  --background: hsl(30, 33%, 96%);
+  --foreground: hsl(30, 15%, 9%);
+  --card: hsl(30, 33%, 98%);
+  --card-foreground: hsl(30, 15%, 9%);
+  --popover: hsl(30, 33%, 98%);
+  --popover-foreground: hsl(30, 15%, 9%);
+  --primary: hsl(20, 65%, 47%);
+  --primary-foreground: hsl(40, 50%, 97%);
+  --secondary: hsl(105, 55%, 20%);
+  --secondary-foreground: hsl(90, 30%, 95%);
+  --muted: hsl(30, 20%, 92%);
+  --muted-foreground: hsl(30, 10%, 45%);
+  --accent: hsl(30, 30%, 90%);
+  --accent-foreground: hsl(30, 15%, 9%);
+  --destructive: hsl(0, 55%, 50%);
+  --border: hsl(30, 15%, 88%);
+  --input: hsl(30, 15%, 88%);
+  --ring: hsl(20, 65%, 47%);
+  --radius: 0.75rem;
+
+  /* Chart colors */
+  --chart-1: hsl(20, 65%, 47%);
+  --chart-2: hsl(105, 55%, 20%);
+  --chart-3: hsl(38, 80%, 50%);
+  --chart-4: hsl(210, 50%, 50%);
+  --chart-5: hsl(145, 50%, 40%);
+
+  /* Sidebar */
+  --sidebar: hsl(30, 33%, 98%);
+  --sidebar-foreground: hsl(30, 15%, 9%);
+  --sidebar-primary: hsl(20, 65%, 47%);
+  --sidebar-primary-foreground: hsl(40, 50%, 97%);
+  --sidebar-accent: hsl(30, 30%, 90%);
+  --sidebar-accent-foreground: hsl(30, 15%, 9%);
+  --sidebar-border: hsl(30, 15%, 88%);
+  --sidebar-ring: hsl(20, 65%, 47%);
+
+  /* Status colors */
+  --status-confirmed: hsl(145, 50%, 40%);
+  --status-confirmed-bg: hsl(145, 40%, 94%);
+  --status-pending: hsl(38, 80%, 50%);
+  --status-pending-bg: hsl(38, 60%, 94%);
+  --status-noshow: hsl(0, 40%, 55%);
+  --status-noshow-bg: hsl(0, 30%, 95%);
+  --status-open: hsl(210, 50%, 50%);
+  --status-open-bg: hsl(210, 40%, 95%);
+  --status-full: hsl(30, 10%, 55%);
+  --status-full-bg: hsl(30, 10%, 93%);
+  --status-completed: hsl(30, 5%, 50%);
+  --status-completed-bg: hsl(30, 5%, 93%);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: hsl(30, 10%, 10%);
+  --foreground: hsl(30, 20%, 92%);
+  --card: hsl(30, 10%, 14%);
+  --card-foreground: hsl(30, 20%, 92%);
+  --popover: hsl(30, 10%, 14%);
+  --popover-foreground: hsl(30, 20%, 92%);
+  --primary: hsl(20, 65%, 55%);
+  --primary-foreground: hsl(30, 10%, 10%);
+  --secondary: hsl(105, 45%, 30%);
+  --secondary-foreground: hsl(90, 30%, 95%);
+  --muted: hsl(30, 10%, 18%);
+  --muted-foreground: hsl(30, 10%, 60%);
+  --accent: hsl(30, 10%, 18%);
+  --accent-foreground: hsl(30, 20%, 92%);
+  --destructive: hsl(0, 55%, 55%);
+  --border: hsl(30, 10%, 20%);
+  --input: hsl(30, 10%, 20%);
+  --ring: hsl(20, 65%, 55%);
+
+  --chart-1: hsl(20, 65%, 55%);
+  --chart-2: hsl(105, 45%, 35%);
+  --chart-3: hsl(38, 80%, 55%);
+  --chart-4: hsl(210, 50%, 55%);
+  --chart-5: hsl(145, 50%, 45%);
+
+  --sidebar: hsl(30, 10%, 12%);
+  --sidebar-foreground: hsl(30, 20%, 92%);
+  --sidebar-primary: hsl(20, 65%, 55%);
+  --sidebar-primary-foreground: hsl(30, 10%, 10%);
+  --sidebar-accent: hsl(30, 10%, 18%);
+  --sidebar-accent-foreground: hsl(30, 20%, 92%);
+  --sidebar-border: hsl(30, 10%, 20%);
+  --sidebar-ring: hsl(20, 65%, 55%);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 
 @layer base {
