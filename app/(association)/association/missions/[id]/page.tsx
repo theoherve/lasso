@@ -72,7 +72,6 @@ export default async function MissionDetailPage({
           <StatusBadge status={mission.status} />
         </div>
         <Button
-          variant="outline"
           render={<Link href={`/association/missions/${id}/slots`} />}
         >
           Gerer les creneaux

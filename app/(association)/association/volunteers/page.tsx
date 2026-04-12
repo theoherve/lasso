@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { VolunteerRow } from "@/components/lasso/VolunteerRow"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Users } from "lucide-react"
 
 interface VolunteerBooking {
   id: string
@@ -18,6 +20,13 @@ interface VolunteerBooking {
 }
 
 const statuses = ["Tous", "CONFIRMED", "COMPLETED", "NO_SHOW", "CANCELLED"] as const
+const statusLabels: Record<string, string> = {
+  Tous: "Tous",
+  CONFIRMED: "Confirmes",
+  COMPLETED: "Termines",
+  NO_SHOW: "Absents",
+  CANCELLED: "Annules",
+}
 
 export default function VolunteersPage() {
   const [filter, setFilter] = useState<string>("Tous")
@@ -70,25 +79,38 @@ export default function VolunteersPage() {
         {statuses.map((s) => (
           <Button
             key={s}
-            variant={filter === s ? "default" : "outline"}
+            variant={filter === s ? "default" : "secondary"}
             size="sm"
             onClick={() => setFilter(s)}
           >
-            {s === "Tous" ? "Tous" : s.replace("_", " ")}
+            {statusLabels[s]}
           </Button>
         ))}
       </div>
 
-      <div className="space-y-3">
-        {uniqueByUser.length === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            Aucun benevole pour ce filtre.
-          </p>
-        )}
-        {uniqueByUser.map((v) => (
-          <VolunteerRow key={v.user.id} user={v.user} booking={v.booking} />
-        ))}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            {uniqueByUser.length} benevole{uniqueByUser.length > 1 ? "s" : ""}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {uniqueByUser.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Users className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Aucun benevole pour ce filtre.
+              </p>
+            </div>
+          ) : (
+            uniqueByUser.map((v) => (
+              <VolunteerRow key={v.user.id} user={v.user} booking={v.booking} />
+            ))
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
