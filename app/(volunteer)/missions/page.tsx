@@ -114,7 +114,7 @@ function BookingList({
     <div className="space-y-3">
       {bookings.map((booking) => (
         <Card key={booking.id}>
-          <CardContent className="flex items-start justify-between gap-4 p-4">
+          <CardContent className="flex items-start justify-between gap-4">
             <Link href={`/mission/${booking.slot.mission.id}`} className="flex-1 space-y-1.5">
               <h3 className="font-semibold leading-tight">
                 {booking.slot.mission.title}

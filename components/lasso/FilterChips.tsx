@@ -32,7 +32,7 @@ export function FilterChips({ options, selected, onChange }: FilterChipsProps) {
             type="button"
             onClick={() => toggle(option.value)}
             className={cn(
-              "flex-shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+              "flex-shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition-colors duration-200",
               isActive
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card text-muted-foreground hover:bg-accent",

@@ -11,8 +11,13 @@ export async function middleware(req: NextRequest) {
   // Public routes — always accessible
   if (
     pathname === "/" ||
+    pathname === "/feed" ||
+    pathname === "/map" ||
+    pathname === "/about" ||
     pathname.startsWith("/associations") ||
-    pathname.startsWith("/api/auth")
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/missions") ||
+    (pathname.startsWith("/mission/") && !pathname.endsWith("/book"))
   ) {
     return NextResponse.next()
   }
@@ -62,6 +67,7 @@ export const config = {
     "/admin/:path*",
     "/login",
     "/register",
+    "/about",
     "/api/admin/:path*",
   ],
 }

@@ -12,11 +12,11 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Lasso — Benevolat a Paris",
+    default: "Lasso — bénévolat à Paris",
     template: "%s | Lasso",
   },
   description:
-    "Trouvez des missions de benevolat ponctuel a Paris. 1 a 2 heures pour faire la difference.",
+    "Trouvez des missions de bénévolat ponctuel à Paris. 1 à 2 heures pour faire la différence.",
 }
 
 export default function RootLayout({

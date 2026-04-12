@@ -1,8 +1,15 @@
 import Link from "next/link"
-import { Clock, MapPin, Users } from "lucide-react"
+import { Clock, MapPin, Users, CalendarDays } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { cn, formatDuration, formatDate, formatArrondissement } from "@/lib/utils"
+import { CategoryIcon } from "@/components/lasso/CategoryIcon"
+import {
+  cn,
+  formatDuration,
+  formatDate,
+  formatArrondissement,
+  getCategoryLabel,
+} from "@/lib/utils"
 
 interface MissionCardProps {
   mission: {
@@ -30,40 +37,41 @@ export function MissionCard({
   showAssociation = true,
   compact = false,
 }: MissionCardProps) {
+  const spotsRemaining = mission.nextSlot?.spotsRemaining ?? 0
+  const isUrgent = spotsRemaining > 0 && spotsRemaining <= 2
+
   return (
-    <Link href={`/mission/${mission.id}`}>
+    <Link href={`/mission/${mission.id}`} className="group cursor-pointer">
       <Card
         className={cn(
-          "group overflow-hidden transition-all duration-200 hover:-translate-y-0.5",
-          "hover:shadow-[var(--shadow-warm-lg)]",
+          "h-full overflow-hidden transition-all duration-200",
+          "hover:-translate-y-0.5 hover:shadow-(--shadow-warm-lg)",
         )}
       >
-        {!compact && (
-          <div className="relative h-32 bg-gradient-to-br from-primary/80 to-secondary/60">
-            <Badge className="absolute right-3 top-3 bg-primary text-primary-foreground">
+        <CardContent className="flex h-full flex-col gap-3">
+          {/* Top row: icon + title + duration */}
+          <div className="flex items-start gap-3">
+            <CategoryIcon category={mission.category} size={compact ? "sm" : "md"} />
+            <div className="min-w-0 flex-1">
+              <h3 className={cn("font-semibold leading-tight", compact ? "text-sm" : "text-base")}>
+                {mission.title}
+              </h3>
+              {showAssociation && mission.association && (
+                <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                  {mission.association.name}
+                </p>
+              )}
+            </div>
+            <Badge className="shrink-0 bg-primary/10 text-primary hover:bg-primary/10">
+              <Clock className="mr-1 h-3 w-3" />
               {formatDuration(mission.durationMin)}
             </Badge>
-            {showAssociation && mission.association && (
-              <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-card text-xs font-bold text-primary shadow-sm">
-                  {mission.association.name.charAt(0)}
-                </div>
-                <span className="text-sm font-medium text-primary-foreground drop-shadow-sm">
-                  {mission.association.name}
-                </span>
-              </div>
-            )}
           </div>
-        )}
 
-        <CardContent className={cn("space-y-2", compact ? "p-3" : "p-4")}>
-          <h3 className={cn("font-semibold leading-tight", compact ? "text-sm" : "text-base")}>
-            {mission.title}
-          </h3>
-
-          <div className="flex flex-wrap gap-2">
+          {/* Badges */}
+          <div className="flex flex-wrap gap-1.5">
             <Badge variant="secondary" className="text-xs">
-              {mission.category}
+              {getCategoryLabel(mission.category)}
             </Badge>
             {mission.association && (
               <Badge variant="outline" className="text-xs">
@@ -73,30 +81,32 @@ export function MissionCard({
             )}
           </div>
 
-          {mission.nextSlot && (
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" />
-                {formatDate(
-                  typeof mission.nextSlot.startsAt === "string"
-                    ? new Date(mission.nextSlot.startsAt)
-                    : mission.nextSlot.startsAt,
-                )}
-              </span>
-              <span className="flex items-center gap-1">
-                <Users className="h-3.5 w-3.5" />
-                {mission.nextSlot.spotsRemaining} place
-                {mission.nextSlot.spotsRemaining > 1 ? "s" : ""}
-              </span>
-            </div>
-          )}
-
-          {compact && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              {formatDuration(mission.durationMin)}
-            </div>
-          )}
+          {/* Bottom row: next slot + spots — pushed to bottom */}
+          <div className="mt-auto flex items-center justify-between border-t border-border pt-2.5 text-sm">
+            {mission.nextSlot ? (
+              <>
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Prochain creneau : {formatDate(
+                    typeof mission.nextSlot.startsAt === "string"
+                      ? new Date(mission.nextSlot.startsAt)
+                      : mission.nextSlot.startsAt,
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    "flex items-center gap-1.5 font-medium",
+                    isUrgent ? "text-destructive" : "text-muted-foreground",
+                  )}
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  {spotsRemaining} place{spotsRemaining > 1 ? "s" : ""}
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">Aucun creneau a venir</span>
+            )}
+          </div>
         </CardContent>
       </Card>
     </Link>

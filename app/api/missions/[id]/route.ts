@@ -20,6 +20,12 @@ export async function GET(
             logoUrl: true,
             arrondissement: true,
             humanValidated: true,
+            avgRating: true,
+            _count: {
+              select: {
+                missions: true,
+              },
+            },
           },
         },
         slots: {

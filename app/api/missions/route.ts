@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl
     const category = searchParams.get("category")
     const arrondissement = searchParams.get("arrondissement")
+    const search = searchParams.get("search")
 
     const categories = category ? category.split(",").filter(Boolean) : []
     const arrondissements = arrondissement
@@ -21,6 +22,12 @@ export async function GET(request: NextRequest) {
         ...(categories.length > 0 && { category: { in: categories } }),
         ...(arrondissements.length > 0 && {
           association: { arrondissement: { in: arrondissements } },
+        }),
+        ...(search && {
+          OR: [
+            { title: { contains: search, mode: "insensitive" as const } },
+            { association: { name: { contains: search, mode: "insensitive" as const } } },
+          ],
         }),
       },
       include: {

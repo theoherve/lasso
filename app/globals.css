@@ -188,3 +188,17 @@
     @apply font-sans;
   }
 }
+
+/* Staggered fade-in for lists - use with style={{ animationDelay }} */
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  [style*="animation"] {
+    animation: none !important;
+    transition: none !important;
+  }
+}
