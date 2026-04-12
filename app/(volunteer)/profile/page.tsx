@@ -113,7 +113,7 @@ export default function ProfilePage() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Mon profil</h2>
         {!editing ? (
-          <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+          <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
             <Pencil className="mr-1 h-3.5 w-3.5" />
             Modifier
           </Button>
