@@ -77,21 +77,21 @@ export default function NewMissionPage() {
             rows={4}
             required
             minLength={10}
-            placeholder="Decrivez la mission, les objectifs et les consignes..."
+            placeholder="Décrivez la mission, les objectifs et les consignes..."
             className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
           />
         </div>
 
         <div className="space-y-2">
-          <Label>Categorie</Label>
+          <Label>Catégorie</Label>
           <Select name="category" required defaultValue="">
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Choisir une categorie" />
+              <SelectValue placeholder="Choisir une catégorie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="aide_personne">Aide a la personne</SelectItem>
+              <SelectItem value="aide_personne">Aide à la personne</SelectItem>
               <SelectItem value="environnement">Environnement</SelectItem>
-              <SelectItem value="education">Education</SelectItem>
+              <SelectItem value="education">Éducation</SelectItem>
               <SelectItem value="autre">Autre</SelectItem>
             </SelectContent>
           </Select>
@@ -104,10 +104,10 @@ export default function NewMissionPage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Duree (minutes)</Label>
+            <Label>Durée (minutes)</Label>
             <Select name="durationMin" defaultValue="90">
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Duree" />
+                <SelectValue placeholder="Durée" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="60">60 minutes</SelectItem>

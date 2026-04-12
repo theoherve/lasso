@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | Lasso",
   },
   description:
-    "Trouvez des missions de bénévolat ponctuel à Paris. 1 à 2 heures pour faire la différence.",
+    "Trouvez des missions de bénévolat ponctuel à Paris. 1 heure pour changer quelque chose.",
 }
 
 export default function RootLayout({

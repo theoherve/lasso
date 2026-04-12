@@ -102,7 +102,7 @@ export default function DevenirAssociationPage() {
           <div>
             <h2 className="text-2xl font-bold">Inscrire mon association</h2>
             <p className="text-sm text-muted-foreground">
-              Rejoignez Lasso et publiez vos missions de benevolat
+              Rejoignez Lasso et publiez vos missions de bénévolat
             </p>
           </div>
         </div>
@@ -124,14 +124,14 @@ export default function DevenirAssociationPage() {
               <Input
                 id="name"
                 name="name"
-                placeholder="Ex : Les Restos du Coeur - Paris 11e"
+                placeholder="Ex : Les Restos du Cœur - Paris 11e"
                 required
                 minLength={2}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rnaNumber">Numero RNA</Label>
+              <Label htmlFor="rnaNumber">Numéro RNA</Label>
               <Input
                 id="rnaNumber"
                 name="rnaNumber"
@@ -139,7 +139,7 @@ export default function DevenirAssociationPage() {
                 pattern="^W\d{9}$"
               />
               <p className="text-xs text-muted-foreground">
-                Optionnel. Format : W suivi de 9 chiffres. Verifie automatiquement aupres du RNA.
+                Optionnel. Format : W suivi de 9 chiffres. Vérifié automatiquement auprès du RNA.
               </p>
             </div>
 
@@ -151,7 +151,7 @@ export default function DevenirAssociationPage() {
                 rows={3}
                 required
                 minLength={10}
-                placeholder="Decrivez l'activite de votre association..."
+                placeholder="Décrivez l'activité de votre association..."
                 className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               />
             </div>
@@ -163,16 +163,16 @@ export default function DevenirAssociationPage() {
                   <SelectValue placeholder="Choisir une categorie" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="aide_personne">Aide a la personne</SelectItem>
+                  <SelectItem value="aide_personne">Aide à la personne</SelectItem>
                   <SelectItem value="environnement">Environnement</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
+                  <SelectItem value="education">Éducation</SelectItem>
                   <SelectItem value="autre">Autre</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Adresse du siege *</Label>
+              <Label htmlFor="address">Adresse du siège *</Label>
               <Input
                 id="address"
                 name="address"
@@ -210,9 +210,9 @@ export default function DevenirAssociationPage() {
 
             <div className="rounded-lg bg-accent p-4 text-sm text-muted-foreground">
               <p>
-                Apres soumission, votre association sera <strong>en attente de validation</strong> par
-                l&apos;equipe Lasso. Vous pourrez acceder a votre backoffice immediatement
-                pour preparer vos missions.
+                Après soumission, votre association sera <strong>en attente de validation</strong> par
+                l&apos;équipe Lasso. Vous pourrez accéder à votre backoffice immédiatement
+                pour préparer vos missions.
               </p>
             </div>
 

@@ -18,7 +18,7 @@ export async function requireAuth() {
 export async function requireRole(role: Role) {
   const session = await requireAuth()
   if (!session.user.roles.includes(role)) {
-    redirect("/")
+    redirect("/feed")
   }
   return session
 }
@@ -34,7 +34,7 @@ export async function getMyAssociation(userId: string) {
 export async function requireMyAssociation(userId: string) {
   const association = await getMyAssociation(userId)
   if (!association) {
-    redirect("/")
+    redirect("/feed")
   }
   return association
 }

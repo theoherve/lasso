@@ -12,11 +12,11 @@ export default function AuthLayout({
         <Link href="/" className="flex flex-col items-center gap-3">
           <Image src="/logo.svg" alt="Lasso" width={56} height={56} />
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-primary">
-              Lasso
+            <h1 className="text-4xl font-extrabold text-foreground" style={{ letterSpacing: '-0.05em' }}>
+              las<span className="text-primary">s</span>o
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Engage-toi pour Paris
+            <p className="text-[9px] font-medium uppercase tracking-[2.5px] text-muted-foreground">
+              1 heure pour changer quelque chose
             </p>
           </div>
         </Link>

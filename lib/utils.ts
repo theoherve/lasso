@@ -51,9 +51,9 @@ export function getCategoryIconName(category: string): string {
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
-  aide_personne: "Aide a la personne",
+  aide_personne: "Aide à la personne",
   environnement: "Environnement",
-  education: "Education",
+  education: "Éducation",
   logistique: "Logistique",
   autre: "Autre",
 }
@@ -75,6 +75,19 @@ export function formatFullDate(date: Date): string {
     day: "numeric",
     month: "long",
   }).format(date)
+}
+
+export function formatDistanceToNow(date: Date): string {
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMin = Math.floor(diffMs / 60_000)
+  if (diffMin < 1) return "a l'instant"
+  if (diffMin < 60) return `il y a ${diffMin} min`
+  const diffH = Math.floor(diffMin / 60)
+  if (diffH < 24) return `il y a ${diffH}h`
+  const diffD = Math.floor(diffH / 24)
+  if (diffD < 7) return `il y a ${diffD}j`
+  return formatDate(date)
 }
 
 export function generateGoogleCalendarUrl({

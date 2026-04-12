@@ -19,7 +19,7 @@ test.describe("Public pages", () => {
     await page.waitForResponse((r) => r.url().includes("/api/missions"))
 
     // Click a category filter
-    const chip = page.getByText("Aide a la personne").or(page.getByText("Education"))
+    const chip = page.getByText("Aide à la personne").or(page.getByText("Éducation"))
     if (await chip.first().isVisible()) {
       await chip.first().click()
       // URL should update with category param

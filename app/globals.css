@@ -68,24 +68,25 @@
 
 :root {
   /* Lasso Design System - Warm Terracotta & Forest */
-  --background: hsl(30, 33%, 96%);
-  --foreground: hsl(30, 15%, 9%);
-  --card: hsl(30, 33%, 98%);
-  --card-foreground: hsl(30, 15%, 9%);
-  --popover: hsl(30, 33%, 98%);
-  --popover-foreground: hsl(30, 15%, 9%);
-  --primary: hsl(20, 65%, 47%);
-  --primary-foreground: hsl(40, 50%, 97%);
-  --secondary: hsl(105, 55%, 20%);
+  /* Brand colors: #EDE5D8 (sand bg), #FAF7F2 (warm white), #1A1612 (dark), #C4622D (terracotta), #8B3D18 (deep terracotta), #2D5016 (forest green), #7A7168 (muted), #E3DDD5 (border) */
+  --background: hsl(30, 25%, 94%);
+  --foreground: #1A1612;
+  --card: #FFFFFF;
+  --card-foreground: #1A1612;
+  --popover: #FAF7F2;
+  --popover-foreground: #1A1612;
+  --primary: #C4622D;
+  --primary-foreground: #FAF7F2;
+  --secondary: #2D5016;
   --secondary-foreground: hsl(90, 30%, 95%);
-  --muted: hsl(30, 20%, 92%);
-  --muted-foreground: hsl(30, 10%, 45%);
-  --accent: hsl(30, 30%, 90%);
-  --accent-foreground: hsl(30, 15%, 9%);
+  --muted: #EEE9E2;
+  --muted-foreground: #7A7168;
+  --accent: #EEE9E2;
+  --accent-foreground: #1A1612;
   --destructive: hsl(0, 55%, 50%);
-  --border: hsl(30, 15%, 88%);
-  --input: hsl(30, 15%, 88%);
-  --ring: hsl(20, 65%, 47%);
+  --border: #E3DDD5;
+  --input: #E3DDD5;
+  --ring: #C4622D;
   --radius: 0.75rem;
 
   /* Chart colors */
@@ -96,14 +97,14 @@
   --chart-5: hsl(145, 50%, 40%);
 
   /* Sidebar */
-  --sidebar: hsl(30, 33%, 98%);
-  --sidebar-foreground: hsl(30, 15%, 9%);
-  --sidebar-primary: hsl(20, 65%, 47%);
-  --sidebar-primary-foreground: hsl(40, 50%, 97%);
-  --sidebar-accent: hsl(30, 30%, 90%);
-  --sidebar-accent-foreground: hsl(30, 15%, 9%);
-  --sidebar-border: hsl(30, 15%, 88%);
-  --sidebar-ring: hsl(20, 65%, 47%);
+  --sidebar: #FAF7F2;
+  --sidebar-foreground: #1A1612;
+  --sidebar-primary: #C4622D;
+  --sidebar-primary-foreground: #FAF7F2;
+  --sidebar-accent: #EEE9E2;
+  --sidebar-accent-foreground: #1A1612;
+  --sidebar-border: #E3DDD5;
+  --sidebar-ring: #C4622D;
 
   /* Status colors */
   --status-confirmed: hsl(145, 50%, 40%);

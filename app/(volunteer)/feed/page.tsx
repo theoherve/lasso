@@ -14,9 +14,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 const categoryOptions = [
-  { value: "aide_personne", label: "Aide a la personne" },
+  { value: "aide_personne", label: "Aide à la personne" },
   { value: "environnement", label: "Environnement" },
-  { value: "education", label: "Education" },
+  { value: "education", label: "Éducation" },
   { value: "autre", label: "Autre" },
 ]
 
@@ -206,7 +206,7 @@ function FeedContent() {
           <h2 className="text-2xl font-bold md:text-3xl">Trouve ta prochaine mission</h2>
         )}
         <p className="text-sm text-muted-foreground md:text-base">
-          1 à 2h pour changer des vies à Paris
+          1 heure pour changer quelque chose
         </p>
       </div>
 
@@ -236,7 +236,7 @@ function FeedContent() {
             placeholder="Chercher une mission..."
             value={localSearch}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="rounded-full pl-10"
+            className="rounded-full bg-card pl-10"
           />
         </div>
         <ArrondissementSelect

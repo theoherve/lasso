@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { createBookingSchema } from "@/lib/validations/booking"
 import { sendBookingConfirmation } from "@/lib/emails/resend"
 import { formatDateTime } from "@/lib/utils"
+import { createNotification, createNotifications } from "@/lib/notifications"
 
 export async function POST(request: Request) {
   try {
@@ -81,6 +82,37 @@ export async function POST(request: Request) {
         address: booking.slot.mission.address,
       }).catch((err) => console.error("[EMAIL] Booking confirmation failed:", err))
     }
+
+    // Create notifications (fire-and-forget)
+    const missionTitle = booking.slot.mission.title
+    const missionLink = `/mission/${booking.slot.mission.id}`
+
+    // Notify the volunteer
+    createNotification({
+      userId: session.user.id,
+      type: "BOOKING_CONFIRMED",
+      title: "Reservation confirmee",
+      message: `Ta reservation pour "${missionTitle}" est confirmee.`,
+      link: missionLink,
+    }).catch((err) => console.error("[NOTIF] Booking confirmed:", err))
+
+    // Notify association members
+    prisma.associationMember
+      .findMany({
+        where: { association: { missions: { some: { id: booking.slot.mission.id } } } },
+        select: { userId: true },
+      })
+      .then((members) => {
+        const notifs = members.map((m) => ({
+          userId: m.userId,
+          type: "NEW_VOLUNTEER_BOOKING" as const,
+          title: "Nouvelle reservation",
+          message: `Un benevole a reserve un creneau pour "${missionTitle}".`,
+          link: `/association/missions/${booking.slot.mission.id}`,
+        }))
+        if (notifs.length > 0) return createNotifications(notifs)
+      })
+      .catch((err) => console.error("[NOTIF] New volunteer booking:", err))
 
     return NextResponse.json(booking, { status: 201 })
   } catch (error) {

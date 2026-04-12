@@ -3,6 +3,8 @@ import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { BottomTabNav } from "@/components/layouts/BottomTabNav"
+import { ProfileDropdown } from "@/components/layouts/ProfileDropdown"
+import { NotificationBell } from "@/components/layouts/NotificationBell"
 
 export default async function VolunteerLayout({
   children,
@@ -13,6 +15,8 @@ export default async function VolunteerLayout({
   const isLoggedIn = !!session?.user
   const firstName = session?.user?.name?.split(" ")[0] ?? null
   const initials = firstName ? firstName[0].toUpperCase() : null
+  const roles = session?.user?.roles ?? []
+  const email = session?.user?.email ?? ""
 
   return (
     <div className="min-h-screen bg-background">
@@ -20,8 +24,8 @@ export default async function VolunteerLayout({
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 lg:px-8">
           <Link href="/feed" className="flex items-center gap-2">
             <Image src="/logo.svg" alt="Lasso" width={28} height={28} />
-            <h1 className="text-xl font-bold tracking-tight text-primary">
-              Lasso
+            <h1 className="text-xl font-extrabold tracking-tight text-foreground" style={{ letterSpacing: '-0.04em' }}>
+              las<span className="text-primary">s</span>o
             </h1>
           </Link>
 
@@ -39,12 +43,15 @@ export default async function VolunteerLayout({
           )}
 
           {isLoggedIn && initials && (
-            <Link
-              href="/profile"
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground transition-opacity duration-200 hover:opacity-90"
-            >
-              {initials}
-            </Link>
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <ProfileDropdown
+                initials={initials}
+                name={firstName ?? ""}
+                email={email}
+                roles={roles}
+              />
+            </div>
           )}
         </div>
       </header>
