@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/lasso/StatusBadge"
 import { EmptyState } from "@/components/lasso/EmptyState"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CalendarDays, Clock, MapPin, X } from "lucide-react"
+import { CalendarDays, Clock, MapPin, X, Star } from "lucide-react"
 import { formatDateTime, formatDuration, formatArrondissement } from "@/lib/utils"
 
 interface BookingItem {
   id: string
   status: string
+  rating: { id: string; score: number } | null
   slot: {
     startsAt: string
     endsAt: string
@@ -29,14 +30,75 @@ interface BookingItem {
   }
 }
 
+function RatingStars({
+  bookingId,
+  existingScore,
+  onRated,
+}: {
+  bookingId: string
+  existingScore: number | null
+  onRated: (bookingId: string, score: number) => void
+}) {
+  const [hovering, setHovering] = useState(0)
+  const [submitting, setSubmitting] = useState(false)
+  const score = existingScore
+
+  async function handleRate(value: number) {
+    if (score) return
+    setSubmitting(true)
+    try {
+      const res = await fetch("/api/ratings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId, score: value }),
+      })
+      if (res.ok) {
+        onRated(bookingId, value)
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-0.5" onMouseLeave={() => setHovering(0)}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button
+          key={i}
+          type="button"
+          disabled={!!score || submitting}
+          onClick={() => handleRate(i)}
+          onMouseEnter={() => !score && setHovering(i)}
+          className="p-0.5 disabled:cursor-default"
+        >
+          <Star
+            className={`h-4 w-4 transition-colors ${
+              i <= (score ?? hovering)
+                ? "fill-amber-400 text-amber-400"
+                : "text-muted-foreground/30"
+            }`}
+          />
+        </button>
+      ))}
+      {score && (
+        <span className="ml-1 text-xs text-muted-foreground">Note</span>
+      )}
+    </div>
+  )
+}
+
 function BookingList({
   bookings,
   onCancel,
   showCancel,
+  showRating,
+  onRated,
 }: {
   bookings: BookingItem[]
   onCancel?: (id: string) => void
   showCancel?: boolean
+  showRating?: boolean
+  onRated?: (bookingId: string, score: number) => void
 }) {
   if (bookings.length === 0) {
     return (
@@ -88,6 +150,15 @@ function BookingList({
                   Annuler
                 </Button>
               )}
+              {showRating &&
+                (booking.status === "COMPLETED" || booking.status === "CONFIRMED") &&
+                onRated && (
+                  <RatingStars
+                    bookingId={booking.id}
+                    existingScore={booking.rating?.score ?? null}
+                    onRated={onRated}
+                  />
+                )}
             </div>
           </CardContent>
         </Card>
@@ -126,6 +197,14 @@ export default function MissionsPage() {
     }
   }
 
+  function handleRated(bookingId: string, score: number) {
+    setPast((prev) =>
+      prev.map((b) =>
+        b.id === bookingId ? { ...b, rating: { id: "new", score } } : b,
+      ),
+    )
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -155,7 +234,7 @@ export default function MissionsPage() {
           <BookingList bookings={upcoming} onCancel={handleCancel} showCancel />
         </TabsContent>
         <TabsContent value={1} className="mt-4">
-          <BookingList bookings={past} />
+          <BookingList bookings={past} showRating onRated={handleRated} />
         </TabsContent>
       </Tabs>
     </div>

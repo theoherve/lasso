@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -10,29 +10,34 @@ export async function GET() {
       return NextResponse.json({ error: "Acces interdit" }, { status: 403 })
     }
 
-    const associations = await prisma.association.findMany({
+    const missions = await prisma.mission.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        _count: { select: { missions: true, members: true } },
+        association: { select: { name: true } },
+        _count: {
+          select: {
+            slots: true,
+          },
+        },
       },
     })
 
-    return NextResponse.json(associations)
+    return NextResponse.json(missions)
   } catch (error) {
-    console.error("[ADMIN_ASSOCIATIONS_GET]", error)
+    console.error("[ADMIN_MISSIONS_GET]", error)
     return NextResponse.json(
-      { error: "Erreur lors de la recuperation des associations" },
+      { error: "Erreur lors de la recuperation des missions" },
       { status: 500 },
     )
   }
 }
 
-const validateSchema = z.object({
+const updateStatusSchema = z.object({
   id: z.string().cuid(),
-  humanValidated: z.boolean(),
+  status: z.enum(["ACTIVE", "CANCELLED"]),
 })
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   try {
     const session = await auth()
     if (!session?.user?.roles.includes("ADMIN")) {
@@ -40,7 +45,7 @@ export async function PATCH(request: Request) {
     }
 
     const body: unknown = await request.json()
-    const parsed = validateSchema.safeParse(body)
+    const parsed = updateStatusSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Donnees invalides", details: parsed.error.flatten() },
@@ -48,16 +53,16 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const association = await prisma.association.update({
+    const mission = await prisma.mission.update({
       where: { id: parsed.data.id },
-      data: { humanValidated: parsed.data.humanValidated },
+      data: { status: parsed.data.status },
     })
 
-    return NextResponse.json(association)
+    return NextResponse.json(mission)
   } catch (error) {
-    console.error("[ADMIN_ASSOCIATIONS_PATCH]", error)
+    console.error("[ADMIN_MISSIONS_PATCH]", error)
     return NextResponse.json(
-      { error: "Erreur lors de la mise a jour de l'association" },
+      { error: "Erreur lors de la mise a jour" },
       { status: 500 },
     )
   }

@@ -12,21 +12,31 @@ export async function GET() {
       return NextResponse.json({ error: "Acces interdit" }, { status: 403 })
     }
 
-    // TODO: replace with real aggregation queries
-    const [usersCount, associationsCount, missionsCount, bookingsCount] =
+    const [users, associations, activeMissions, noShows, bookingsThisMonth] =
       await Promise.all([
         prisma.user.count(),
         prisma.association.count(),
-        prisma.mission.count(),
-        prisma.booking.count(),
+        prisma.mission.count({ where: { status: "ACTIVE" } }),
+        prisma.noShowReport.count(),
+        prisma.booking.count({
+          where: {
+            createdAt: {
+              gte: new Date(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                1,
+              ),
+            },
+          },
+        }),
       ])
 
     return NextResponse.json({
-      users: usersCount,
-      associations: associationsCount,
-      missions: missionsCount,
-      bookings: bookingsCount,
-      // TODO: add more stats (active missions, bookings this week, no-show rate, etc.)
+      users,
+      associations,
+      activeMissions,
+      noShows,
+      bookingsThisMonth,
     })
   } catch (error) {
     console.error("[ADMIN_STATS_GET]", error)

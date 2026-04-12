@@ -1,3 +1,7 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -6,41 +10,83 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { formatDateTime } from "@/lib/utils"
 
-const reports = [
-  { id: "1", benevole: "Hugo Petit", mission: "Maraude Paris 11e", date: "7 avr. 2026", note: "Ne s'est pas presente sans prevenir" },
-  { id: "2", benevole: "Nathan Roux", mission: "Tri alimentaire Belleville", date: "5 avr. 2026", note: "Absence non justifiee" },
-  { id: "3", benevole: "Lea Moreau", mission: "Aide aux devoirs", date: "3 avr. 2026", note: "A prevenu 10 min avant le creneau" },
-  { id: "4", benevole: "Hugo Petit", mission: "Distribution repas", date: "1 avr. 2026", note: "Deuxieme absence ce mois" },
-]
+interface NoShowReport {
+  id: string
+  note: string | null
+  createdAt: string
+  booking: {
+    user: { firstName: string | null; name: string | null }
+    slot: {
+      startsAt: string
+      mission: { title: string }
+    }
+  }
+}
 
 export default function AdminNoShowsPage() {
+  const [reports, setReports] = useState<NoShowReport[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/admin/no-shows")
+      .then((r) => r.json())
+      .then(setReports)
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-64" />
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Signalements no-show</h1>
+      <h1 className="text-2xl font-bold">Signalements no-show ({reports.length})</h1>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Benevole</TableHead>
-            <TableHead>Mission</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Note</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {reports.map((report) => (
-            <TableRow key={report.id}>
-              <TableCell className="font-medium">{report.benevole}</TableCell>
-              <TableCell>{report.mission}</TableCell>
-              <TableCell>{report.date}</TableCell>
-              <TableCell className="max-w-xs text-muted-foreground">
-                {report.note}
-              </TableCell>
+      {reports.length === 0 ? (
+        <p className="py-12 text-center text-muted-foreground">
+          Aucun signalement pour le moment.
+        </p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Benevole</TableHead>
+              <TableHead>Mission</TableHead>
+              <TableHead>Date du creneau</TableHead>
+              <TableHead>Signale le</TableHead>
+              <TableHead>Note</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {reports.map((report) => (
+              <TableRow key={report.id}>
+                <TableCell className="font-medium">
+                  {report.booking.user.firstName ?? report.booking.user.name ?? "—"}
+                </TableCell>
+                <TableCell>{report.booking.slot.mission.title}</TableCell>
+                <TableCell>
+                  {formatDateTime(new Date(report.booking.slot.startsAt))}
+                </TableCell>
+                <TableCell>
+                  {formatDateTime(new Date(report.createdAt))}
+                </TableCell>
+                <TableCell className="max-w-xs text-sm text-muted-foreground">
+                  {report.note ?? "—"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   )
 }

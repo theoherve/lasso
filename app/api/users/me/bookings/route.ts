@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        rating: { select: { id: true, score: true } },
       },
       orderBy: { slot: { startsAt: period === "past" ? "desc" : "asc" } },
     })

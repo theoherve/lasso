@@ -1,7 +1,9 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/lasso/StatusBadge"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -10,27 +12,67 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { formatDateTime } from "@/lib/utils"
 
-const missions = [
-  { id: "1", title: "Maraude Paris 11e", association: "Les Restos du Coeur", status: "ACTIVE", date: "12 avr. 2026" },
-  { id: "2", title: "Tri alimentaire Belleville", association: "Solidarites Nouvelles", status: "OPEN", date: "15 avr. 2026" },
-  { id: "3", title: "Aide aux devoirs", association: "Emmaues Paris", status: "ACTIVE", date: "18 avr. 2026" },
-  { id: "4", title: "Distribution repas Gare du Nord", association: "Action contre la Faim", status: "COMPLETED", date: "5 avr. 2026" },
-  { id: "5", title: "Nettoyage berges Canal Saint-Martin", association: "Secours Populaire 75", status: "PENDING", date: "20 avr. 2026" },
-]
+interface AdminMission {
+  id: string
+  title: string
+  status: string
+  category: string
+  createdAt: string
+  association: { name: string }
+  _count: { slots: number }
+}
 
 export default function AdminMissionsPage() {
+  const [missions, setMissions] = useState<AdminMission[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/admin/missions")
+      .then((r) => r.json())
+      .then(setMissions)
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleCancel(id: string) {
+    const res = await fetch("/api/admin/missions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status: "CANCELLED" }),
+    })
+
+    if (res.ok) {
+      setMissions((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, status: "CANCELLED" } : m)),
+      )
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-64" />
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Moderation des missions</h1>
+      <h1 className="text-2xl font-bold">Moderation des missions ({missions.length})</h1>
 
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Titre</TableHead>
             <TableHead>Association</TableHead>
+            <TableHead>Categorie</TableHead>
+            <TableHead>Creneaux</TableHead>
             <TableHead>Statut</TableHead>
-            <TableHead>Date</TableHead>
+            <TableHead>Creee le</TableHead>
             <TableHead>Action</TableHead>
           </TableRow>
         </TableHeader>
@@ -38,15 +80,25 @@ export default function AdminMissionsPage() {
           {missions.map((mission) => (
             <TableRow key={mission.id}>
               <TableCell className="font-medium">{mission.title}</TableCell>
-              <TableCell>{mission.association}</TableCell>
+              <TableCell>{mission.association.name}</TableCell>
+              <TableCell className="text-sm">{mission.category}</TableCell>
+              <TableCell>{mission._count.slots}</TableCell>
               <TableCell>
                 <StatusBadge status={mission.status} />
               </TableCell>
-              <TableCell>{mission.date}</TableCell>
+              <TableCell className="text-sm">
+                {formatDateTime(new Date(mission.createdAt))}
+              </TableCell>
               <TableCell>
-                <Button size="sm" variant="destructive">
-                  Masquer
-                </Button>
+                {mission.status === "ACTIVE" && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleCancel(mission.id)}
+                  >
+                    Annuler
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}

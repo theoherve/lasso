@@ -1,18 +1,42 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { requireRole } from "@/lib/auth-helpers"
+import { prisma } from "@/lib/prisma"
 
-const stats = [
-  { label: "Utilisateurs", value: 1_243 },
-  { label: "Associations", value: 58 },
-  { label: "Missions actives", value: 94 },
-  { label: "Signalements", value: 7 },
-]
+export default async function AdminDashboardPage() {
+  await requireRole("ADMIN")
 
-export default function AdminDashboardPage() {
+  const [users, associations, activeMissions, noShows, bookingsThisMonth] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.association.count(),
+      prisma.mission.count({ where: { status: "ACTIVE" } }),
+      prisma.noShowReport.count(),
+      prisma.booking.count({
+        where: {
+          createdAt: {
+            gte: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              1,
+            ),
+          },
+        },
+      }),
+    ])
+
+  const stats = [
+    { label: "Utilisateurs", value: users },
+    { label: "Associations", value: associations },
+    { label: "Missions actives", value: activeMissions },
+    { label: "Reservations ce mois", value: bookingsThisMonth },
+    { label: "Signalements no-show", value: noShows },
+  ]
+
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-bold">Tableau de bord admin</h1>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader>
@@ -22,9 +46,7 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {typeof stat.value === "number"
-                  ? stat.value.toLocaleString("fr-FR")
-                  : stat.value}
+                {stat.value.toLocaleString("fr-FR")}
               </p>
             </CardContent>
           </Card>

@@ -25,9 +25,35 @@ export async function POST(request: Request) {
       )
     }
 
-    // TODO: verify the booking belongs to the current user
-    // TODO: verify the booking's slot date has passed
-    // TODO: check the user hasn't already rated this booking
+    const booking = await prisma.booking.findUnique({
+      where: { id: parsed.data.bookingId },
+      include: {
+        slot: { select: { endsAt: true } },
+        rating: { select: { id: true } },
+      },
+    })
+
+    if (!booking || booking.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Reservation introuvable" },
+        { status: 404 },
+      )
+    }
+
+    if (booking.slot.endsAt > new Date()) {
+      return NextResponse.json(
+        { error: "Tu ne peux noter qu'apres la fin du creneau" },
+        { status: 400 },
+      )
+    }
+
+    if (booking.rating) {
+      return NextResponse.json(
+        { error: "Tu as deja note cette mission" },
+        { status: 409 },
+      )
+    }
+
     const rating = await prisma.rating.create({
       data: {
         bookingId: parsed.data.bookingId,

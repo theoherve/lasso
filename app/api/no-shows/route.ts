@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getMyAssociation } from "@/lib/auth-helpers"
 
 const reportNoShowSchema = z.object({
   bookingId: z.string().cuid(),
@@ -27,17 +28,67 @@ export async function POST(request: Request) {
       )
     }
 
-    // TODO: verify the booking belongs to a slot owned by the user's association
-    // TODO: verify the slot date has passed before allowing no-show report
-    const noShow = await prisma.noShowReport.create({
-      data: {
-        bookingId: parsed.data.bookingId,
-        note: parsed.data.note,
-        reportedBy: session.user.id,
+    const association = await getMyAssociation(session.user.id)
+    if (!association) {
+      return NextResponse.json(
+        { error: "Aucune association liee" },
+        { status: 403 },
+      )
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: parsed.data.bookingId },
+      include: {
+        slot: {
+          include: { mission: { select: { associationId: true } } },
+        },
+        noShowReport: { select: { id: true } },
       },
     })
 
-    return NextResponse.json(noShow, { status: 201 })
+    if (!booking || booking.slot.mission.associationId !== association.id) {
+      return NextResponse.json(
+        { error: "Reservation introuvable" },
+        { status: 404 },
+      )
+    }
+
+    if (booking.slot.startsAt > new Date()) {
+      return NextResponse.json(
+        { error: "Le creneau n'a pas encore eu lieu" },
+        { status: 400 },
+      )
+    }
+
+    if (booking.noShowReport) {
+      return NextResponse.json(
+        { error: "Ce no-show a deja ete signale" },
+        { status: 409 },
+      )
+    }
+
+    await prisma.$transaction([
+      prisma.noShowReport.create({
+        data: {
+          bookingId: parsed.data.bookingId,
+          note: parsed.data.note,
+          reportedBy: session.user.id,
+        },
+      }),
+      prisma.booking.update({
+        where: { id: parsed.data.bookingId },
+        data: { status: "NO_SHOW" },
+      }),
+      prisma.user.update({
+        where: { id: booking.userId },
+        data: {
+          noShowCount: { increment: 1 },
+          reliabilityScore: { decrement: 0.5 },
+        },
+      }),
+    ])
+
+    return NextResponse.json({ success: true }, { status: 201 })
   } catch (error) {
     console.error("[NO_SHOWS_POST]", error)
     return NextResponse.json(

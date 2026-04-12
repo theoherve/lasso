@@ -6,10 +6,10 @@ import { LayoutDashboard, ListTodo, Users, BarChart3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { href: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
-  { href: "/missions", label: "Missions", icon: ListTodo },
-  { href: "/volunteers", label: "Benevoles", icon: Users },
-  { href: "/stats", label: "Statistiques", icon: BarChart3 },
+  { href: "/association/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
+  { href: "/association/missions", label: "Missions", icon: ListTodo },
+  { href: "/association/volunteers", label: "Benevoles", icon: Users },
+  { href: "/association/stats", label: "Statistiques", icon: BarChart3 },
 ]
 
 export function AssociationSidebar() {
