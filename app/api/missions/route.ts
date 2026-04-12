@@ -59,6 +59,8 @@ export async function GET(request: NextRequest) {
         category: m.category,
         durationMin: m.durationMin,
         address: m.address,
+        lat: m.lat,
+        lng: m.lng,
         association: m.association,
         nextSlot: nextSlot
           ? {

@@ -6,7 +6,6 @@ import { verifyRna } from "@/lib/rna"
 
 export async function GET() {
   try {
-    // TODO: add pagination, search, category filtering
     const associations = await prisma.association.findMany({
       orderBy: { name: "asc" },
     })
@@ -37,38 +36,84 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verify RNA number if provided
+    // Check user doesn't already own an association
+    const existingMembership = await prisma.associationMember.findFirst({
+      where: { userId: session.user.id, isOwner: true },
+    })
+    if (existingMembership) {
+      return NextResponse.json(
+        { error: "Vous etes deja responsable d'une association" },
+        { status: 409 },
+      )
+    }
+
+    // Verify RNA if provided
+    let rnaVerified = false
+    let rnaName: string | undefined
     if (parsed.data.rnaNumber) {
       const rnaResult = await verifyRna(parsed.data.rnaNumber)
-      if (!rnaResult) {
+      if (!rnaResult.valid) {
         return NextResponse.json(
           { error: "Numero RNA invalide ou introuvable" },
           { status: 400 },
         )
       }
+      rnaVerified = true
+      rnaName = rnaResult.name
     }
 
-    // TODO: generate slug from name
-    const slug = parsed.data.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")
+    // Generate unique slug
+    let baseSlug = parsed.data.name
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
 
-    const association = await prisma.association.create({
-      data: {
-        name: parsed.data.name,
-        slug,
-        rnaNumber: parsed.data.rnaNumber,
-        rnaVerified: !!parsed.data.rnaNumber,
-        description: parsed.data.description,
-        address: parsed.data.address,
-        arrondissement: parsed.data.arrondissement,
-        category: parsed.data.category,
-        website: parsed.data.website,
-        members: {
-          create: {
-            userId: session.user.id,
-            isOwner: true,
+    let slug = baseSlug
+    let counter = 1
+    while (await prisma.association.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+
+    // Create association + membership + grant role in a transaction
+    const association = await prisma.$transaction(async (tx) => {
+      const asso = await tx.association.create({
+        data: {
+          name: rnaName ?? parsed.data.name,
+          slug,
+          rnaNumber: parsed.data.rnaNumber,
+          rnaVerified,
+          humanValidated: false,
+          description: parsed.data.description,
+          address: parsed.data.address,
+          arrondissement: parsed.data.arrondissement,
+          category: parsed.data.category,
+          website: parsed.data.website,
+          members: {
+            create: {
+              userId: session.user.id,
+              isOwner: true,
+            },
           },
         },
-      },
+      })
+
+      // Grant ASSOCIATION role to the user
+      const user = await tx.user.findUniqueOrThrow({
+        where: { id: session.user.id },
+        select: { roles: true },
+      })
+
+      if (!user.roles.includes("ASSOCIATION")) {
+        await tx.user.update({
+          where: { id: session.user.id },
+          data: { roles: [...user.roles, "ASSOCIATION"] },
+        })
+      }
+
+      return asso
     })
 
     return NextResponse.json(association, { status: 201 })

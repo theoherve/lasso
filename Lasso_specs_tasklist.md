@@ -491,6 +491,3 @@ _Cocher chaque etape au fur et a mesure de l'avancement._
 - [x] T-094 : Design system visible sur la landing page
 - [x] T-094 : Tous les composants compilent avec leurs props typees
 
----
-
-_Lasso - Paris 2026 - <arno@dazle.fr> - Document interne v1.0_

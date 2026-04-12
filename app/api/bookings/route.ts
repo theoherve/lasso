@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { createBookingSchema } from "@/lib/validations/booking"
+import { sendBookingConfirmation } from "@/lib/emails/resend"
+import { formatDateTime } from "@/lib/utils"
 
 export async function POST(request: Request) {
   try {
@@ -56,11 +58,29 @@ export async function POST(request: Request) {
         },
         include: {
           slot: {
-            include: { mission: { select: { id: true, title: true } } },
+            include: {
+              mission: { select: { id: true, title: true, address: true } },
+            },
           },
         },
       })
     })
+
+    // Send confirmation email (fire-and-forget)
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true, firstName: true },
+    })
+
+    if (user?.email) {
+      sendBookingConfirmation({
+        to: user.email,
+        firstName: user.firstName ?? "Benevole",
+        missionTitle: booking.slot.mission.title,
+        date: formatDateTime(booking.slot.startsAt),
+        address: booking.slot.mission.address,
+      }).catch((err) => console.error("[EMAIL] Booking confirmation failed:", err))
+    }
 
     return NextResponse.json(booking, { status: 201 })
   } catch (error) {

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ReliabilityScore } from "@/components/lasso/ReliabilityScore"
-import { CalendarDays, Clock, MapPin, Pencil, Check, X } from "lucide-react"
+import { CalendarDays, Clock, MapPin, Pencil, Check, X, Trophy } from "lucide-react"
 
 interface UserProfile {
   id: string
@@ -35,11 +35,20 @@ export default function ProfilePage() {
     arrondissement: "",
     bio: "",
   })
+  const [badges, setBadges] = useState<
+    { id: string; name: string; description: string; icon: string }[]
+  >([])
+  const [stats, setStats] = useState({
+    missionsCompleted: 0,
+    totalHours: 0,
+  })
 
   useEffect(() => {
-    fetch("/api/users/me")
-      .then((res) => res.json())
-      .then((data) => {
+    Promise.all([
+      fetch("/api/users/me").then((r) => r.json()),
+      fetch("/api/users/me/badges").then((r) => r.json()),
+    ])
+      .then(([data, badgeData]) => {
         setUser(data)
         setForm({
           firstName: data.firstName ?? "",
@@ -47,6 +56,8 @@ export default function ProfilePage() {
           arrondissement: data.arrondissement ? String(data.arrondissement) : "",
           bio: data.bio ?? "",
         })
+        if (badgeData.badges) setBadges(badgeData.badges)
+        if (badgeData.stats) setStats(badgeData.stats)
       })
       .finally(() => setLoading(false))
   }, [])
@@ -206,6 +217,56 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {!editing && (
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="flex flex-col items-center p-6">
+              <CalendarDays className="mb-2 h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold text-primary">
+                {stats.missionsCompleted}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                Missions realisees
+              </span>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex flex-col items-center p-6">
+              <Clock className="mb-2 h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold text-primary">
+                {stats.totalHours}h
+              </span>
+              <span className="text-sm text-muted-foreground">
+                Heures donnees
+              </span>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!editing && badges.length > 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold">
+              <Trophy className="h-4 w-4 text-primary" />
+              Badges ({badges.length})
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {badges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5"
+                  title={badge.description}
+                >
+                  <span className="text-lg">{badge.icon}</span>
+                  <span className="text-sm font-medium">{badge.name}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {!editing && user.bio && (
         <Card>
