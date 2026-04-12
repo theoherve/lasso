@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Heart, Clock, MapPin, Users } from "lucide-react"
 
@@ -8,7 +9,10 @@ export default function LandingPage() {
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <span className="text-xl font-extrabold text-primary">Lasso</span>
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo.svg" alt="Lasso" width={32} height={32} />
+            <span className="text-xl font-extrabold text-primary">Lasso</span>
+          </Link>
           <div className="flex items-center gap-3">
             <Link href="/login">
               <Button variant="ghost" size="sm">

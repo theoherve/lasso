@@ -1,26 +1,66 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { VolunteerRow } from "@/components/lasso/VolunteerRow"
+import { Skeleton } from "@/components/ui/skeleton"
 
-const mockVolunteers = [
-  { user: { id: "v1", firstName: "Marie", name: "Dupont", avatarUrl: null, reliabilityScore: 92 }, booking: { status: "CONFIRMED" } },
-  { user: { id: "v2", firstName: "Lucas", name: "Martin", avatarUrl: null, reliabilityScore: 88 }, booking: { status: "CONFIRMED" } },
-  { user: { id: "v3", firstName: "Camille", name: "Bernard", avatarUrl: null, reliabilityScore: 75 }, booking: { status: "PENDING" } },
-  { user: { id: "v4", firstName: "Hugo", name: "Petit", avatarUrl: null, reliabilityScore: 95 }, booking: { status: "COMPLETED" } },
-  { user: { id: "v5", firstName: "Lea", name: "Moreau", avatarUrl: null, reliabilityScore: 60 }, booking: { status: "NO_SHOW" } },
-]
+interface VolunteerBooking {
+  id: string
+  status: string
+  user: {
+    id: string
+    firstName: string | null
+    name: string | null
+    avatarUrl: string | null
+    reliabilityScore: number
+  }
+}
 
-const statuses = ["Tous", "CONFIRMED", "PENDING", "COMPLETED", "NO_SHOW"] as const
+const statuses = ["Tous", "CONFIRMED", "COMPLETED", "NO_SHOW", "CANCELLED"] as const
 
 export default function VolunteersPage() {
   const [filter, setFilter] = useState<string>("Tous")
+  const [bookings, setBookings] = useState<VolunteerBooking[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/associations/me/bookings")
+        if (res.ok) setBookings(await res.json())
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
 
   const filtered =
     filter === "Tous"
-      ? mockVolunteers
-      : mockVolunteers.filter((v) => v.booking.status === filter)
+      ? bookings
+      : bookings.filter((b) => b.status === filter)
+
+  const uniqueByUser = Array.from(
+    new Map(
+      filtered.map((b) => [
+        b.user.id,
+        { user: b.user, booking: { status: b.status } },
+      ]),
+    ).values(),
+  )
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-10 w-full" />
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-16 rounded-lg" />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -40,12 +80,12 @@ export default function VolunteersPage() {
       </div>
 
       <div className="space-y-3">
-        {filtered.length === 0 && (
+        {uniqueByUser.length === 0 && (
           <p className="py-8 text-center text-sm text-muted-foreground">
             Aucun benevole pour ce filtre.
           </p>
         )}
-        {filtered.map((v) => (
+        {uniqueByUser.map((v) => (
           <VolunteerRow key={v.user.id} user={v.user} booking={v.booking} />
         ))}
       </div>

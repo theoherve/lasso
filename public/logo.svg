@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Silhouette gauche — bénévole, terracotta vif -->
+  <circle cx="30" cy="24" r="11" fill="#C4622D"/>
+  <path d="M 14 88 C 14 70, 18 58, 30 55 C 42 52, 47 62, 47 70 L 47 88 Z" fill="#C4622D"/>
+
+  <!-- Silhouette droite — personne aidée, terracotta profond -->
+  <circle cx="70" cy="21" r="13" fill="#8B3D18"/>
+  <path d="M 53 88 C 53 68, 55 56, 70 52 C 85 48, 88 62, 88 72 L 88 88 Z" fill="#8B3D18"/>
+
+  <!-- Pont de connexion — vert forêt, lien entre les deux -->
+  <rect x="44" y="63" width="12" height="5" rx="2.5" fill="#2D5016" opacity="0.85"/>
+</svg>

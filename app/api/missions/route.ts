@@ -98,11 +98,22 @@ export async function POST(request: Request) {
       )
     }
 
-    // TODO: look up the association linked to session.user.id and pass associationId
+    const membership = await prisma.associationMember.findFirst({
+      where: { userId: session.user.id },
+      select: { associationId: true },
+    })
+
+    if (!membership) {
+      return NextResponse.json(
+        { error: "Aucune association liee a votre compte" },
+        { status: 403 },
+      )
+    }
+
     const mission = await prisma.mission.create({
       data: {
         ...parsed.data,
-        associationId: "", // TODO: resolve from session user
+        associationId: membership.associationId,
       },
     })
 

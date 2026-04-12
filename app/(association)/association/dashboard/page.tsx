@@ -8,22 +8,85 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { StatusBadge } from "@/components/lasso/StatusBadge"
+import { requireRole } from "@/lib/auth-helpers"
+import { requireMyAssociation } from "@/lib/auth-helpers"
+import { prisma } from "@/lib/prisma"
+import { formatDateTime } from "@/lib/utils"
 
-const kpis = [
-  { label: "Missions actives", value: 12 },
-  { label: "Benevoles inscrits ce mois", value: 47 },
-  { label: "Heures completees", value: 186 },
-  { label: "Prochain creneau", value: "Demain 14h" },
-]
+export default async function DashboardPage() {
+  const session = await requireRole("ASSOCIATION")
+  const association = await requireMyAssociation(session.user.id)
 
-const recentBookings = [
-  { id: "1", benevole: "Marie Dupont", mission: "Maraude Paris 11e", date: "10 avr. 2026", status: "CONFIRMED" },
-  { id: "2", benevole: "Lucas Martin", mission: "Tri alimentaire", date: "9 avr. 2026", status: "PENDING" },
-  { id: "3", benevole: "Camille Bernard", mission: "Aide aux devoirs", date: "8 avr. 2026", status: "COMPLETED" },
-  { id: "4", benevole: "Hugo Petit", mission: "Distribution repas", date: "7 avr. 2026", status: "NO_SHOW" },
-]
+  const [activeMissions, monthBookings, recentBookings, nextSlot] =
+    await Promise.all([
+      prisma.mission.count({
+        where: { associationId: association.id, status: "ACTIVE" },
+      }),
+      prisma.booking.count({
+        where: {
+          slot: { mission: { associationId: association.id } },
+          status: "CONFIRMED",
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        },
+      }),
+      prisma.booking.findMany({
+        where: {
+          slot: { mission: { associationId: association.id } },
+        },
+        include: {
+          user: { select: { firstName: true, name: true } },
+          slot: {
+            select: {
+              startsAt: true,
+              mission: { select: { title: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+      prisma.slot.findFirst({
+        where: {
+          mission: { associationId: association.id },
+          startsAt: { gte: new Date() },
+          status: "OPEN",
+        },
+        orderBy: { startsAt: "asc" },
+        select: { startsAt: true },
+      }),
+    ])
 
-export default function DashboardPage() {
+  const completedHours = await prisma.booking.findMany({
+    where: {
+      slot: { mission: { associationId: association.id } },
+      status: "COMPLETED",
+    },
+    select: {
+      slot: { select: { mission: { select: { durationMin: true } } } },
+    },
+  })
+
+  const totalHours = Math.round(
+    completedHours.reduce(
+      (acc, b) => acc + b.slot.mission.durationMin,
+      0,
+    ) / 60,
+  )
+
+  const kpis = [
+    { label: "Missions actives", value: activeMissions },
+    { label: "Inscrits ce mois", value: monthBookings },
+    { label: "Heures completees", value: `${totalHours} h` },
+    {
+      label: "Prochain creneau",
+      value: nextSlot
+        ? formatDateTime(nextSlot.startsAt)
+        : "Aucun",
+    },
+  ]
+
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-bold">Vue d&apos;ensemble</h1>
@@ -48,28 +111,38 @@ export default function DashboardPage() {
           <CardTitle>Reservations recentes</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Benevole</TableHead>
-                <TableHead>Mission</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Statut</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentBookings.map((booking) => (
-                <TableRow key={booking.id}>
-                  <TableCell className="font-medium">{booking.benevole}</TableCell>
-                  <TableCell>{booking.mission}</TableCell>
-                  <TableCell>{booking.date}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={booking.status} />
-                  </TableCell>
+          {recentBookings.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Aucune reservation pour le moment.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Benevole</TableHead>
+                  <TableHead>Mission</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Statut</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {recentBookings.map((booking) => (
+                  <TableRow key={booking.id}>
+                    <TableCell className="font-medium">
+                      {booking.user.firstName ?? booking.user.name ?? "—"}
+                    </TableCell>
+                    <TableCell>{booking.slot.mission.title}</TableCell>
+                    <TableCell>
+                      {formatDateTime(booking.slot.startsAt)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={booking.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

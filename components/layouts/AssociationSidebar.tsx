@@ -18,9 +18,7 @@ export function AssociationSidebar() {
   return (
     <aside className="hidden w-64 flex-shrink-0 border-r border-border bg-card lg:flex lg:flex-col">
       <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <span className="text-sm font-bold">L</span>
-        </div>
+        <img src="/logo.svg" alt="Lasso" width={36} height={36} />
         <div>
           <p className="text-sm font-semibold">Lasso</p>
           <p className="text-xs text-muted-foreground">Backoffice association</p>
