@@ -105,6 +105,24 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* CTA Associations */}
+      <section className="border-t border-border bg-secondary/5 py-16">
+        <div className="mx-auto max-w-2xl px-4 text-center">
+          <h2 className="mb-4 text-2xl font-bold">
+            Vous etes une association ?
+          </h2>
+          <p className="mb-6 text-muted-foreground">
+            Inscrivez votre association sur Lasso et publiez vos missions
+            pour trouver des benevoles motives.
+          </p>
+          <Link href="/devenir-association">
+            <Button size="lg" variant="outline" className="text-base">
+              Inscrire mon association
+            </Button>
+          </Link>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>Lasso — Paris 2026 — Benevolat ponctuel pour tous</p>

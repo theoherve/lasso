@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ReliabilityScore } from "@/components/lasso/ReliabilityScore"
-import { CalendarDays, Clock, MapPin, Pencil, Check, X, Trophy } from "lucide-react"
+import Link from "next/link"
+import { CalendarDays, Clock, MapPin, Pencil, Check, X, Trophy, Building2 } from "lucide-react"
 
 interface UserProfile {
   id: string
@@ -277,6 +278,24 @@ export default function ProfilePage() {
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {!editing && (
+        <Link href="/devenir-association">
+          <Card className="transition-all hover:shadow-(--shadow-warm)">
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+                <Building2 className="h-5 w-5 text-secondary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Vous etes une association ?</p>
+                <p className="text-xs text-muted-foreground">
+                  Inscrivez votre asso et publiez vos missions
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       )}
     </div>
   )

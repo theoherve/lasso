@@ -57,6 +57,7 @@ export const config = {
     "/missions/:path*",
     "/profile/:path*",
     "/mission/:path*",
+    "/devenir-association",
     "/association/:path*",
     "/admin/:path*",
     "/login",
