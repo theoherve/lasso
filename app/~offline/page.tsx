@@ -18,7 +18,7 @@ export default function OfflinePage() {
           Vous êtes hors ligne
         </h1>
         <p className="text-muted-foreground max-w-sm">
-          Cette page n'est pas disponible sans connexion. Vérifiez votre réseau,
+          Cette page n&apos;est pas disponible sans connexion. Vérifiez votre réseau,
           puis réessayez. Les pages déjà consultées restent accessibles.
         </p>
       </div>

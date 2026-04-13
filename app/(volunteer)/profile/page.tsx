@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useMe, useMyBadges, useUpdateMe } from "@/lib/api/queries/profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
@@ -30,16 +30,17 @@ export default function ProfilePage() {
     bio: "",
   })
 
-  // Hydrate form once the user profile loads.
-  useEffect(() => {
-    if (!user) return
-    setForm({
-      firstName: user.firstName ?? "",
-      name: user.name ?? "",
-      arrondissement: user.arrondissement ? String(user.arrondissement) : "",
-      bio: user.bio ?? "",
-    })
-  }, [user])
+  function enterEditMode() {
+    if (user) {
+      setForm({
+        firstName: user.firstName ?? "",
+        name: user.name ?? "",
+        arrondissement: user.arrondissement ? String(user.arrondissement) : "",
+        bio: user.bio ?? "",
+      })
+    }
+    setEditing(true)
+  }
 
   async function handleSave() {
     const input: Parameters<typeof updateMe.mutateAsync>[0] = {}
@@ -81,7 +82,7 @@ export default function ProfilePage() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Mon profil</h2>
         {!editing ? (
-          <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+          <Button variant="secondary" size="sm" onClick={enterEditMode}>
             <Pencil className="mr-1 h-3.5 w-3.5" />
             Modifier
           </Button>

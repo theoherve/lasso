@@ -32,22 +32,24 @@ function persistDismiss() {
 export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null)
-  const [isIOS, setIsIOS] = useState(false)
-  const [isStandalone, setIsStandalone] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const [isIOS] = useState(() => {
+    if (typeof window === "undefined") return false
+    return (
+      /iPad|iPhone|iPod/.test(window.navigator.userAgent) &&
+      !(window as unknown as { MSStream?: unknown }).MSStream
+    )
+  })
+  const [isStandalone] = useState(() => {
+    if (typeof window === "undefined") return false
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone ===
+        true
+    )
+  })
+  const [dismissed, setDismissed] = useState(wasRecentlyDismissed)
 
   useEffect(() => {
-    setIsStandalone(
-      window.matchMedia("(display-mode: standalone)").matches ||
-        // iOS Safari non-standard flag
-        (window.navigator as Navigator & { standalone?: boolean }).standalone === true,
-    )
-    setIsIOS(
-      /iPad|iPhone|iPod/.test(window.navigator.userAgent) &&
-        !(window as unknown as { MSStream?: unknown }).MSStream,
-    )
-    setDismissed(wasRecentlyDismissed())
-
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
