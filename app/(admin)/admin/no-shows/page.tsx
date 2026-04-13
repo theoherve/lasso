@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useAdminNoShows } from "@/lib/api/queries/admin"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -12,29 +12,8 @@ import {
 } from "@/components/ui/table"
 import { formatDateTime } from "@/lib/utils"
 
-interface NoShowReport {
-  id: string
-  note: string | null
-  createdAt: string
-  booking: {
-    user: { firstName: string | null; name: string | null }
-    slot: {
-      startsAt: string
-      mission: { title: string }
-    }
-  }
-}
-
 export default function AdminNoShowsPage() {
-  const [reports, setReports] = useState<NoShowReport[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch("/api/admin/no-shows")
-      .then((r) => r.json())
-      .then(setReports)
-      .finally(() => setLoading(false))
-  }, [])
+  const { data: reports = [], isLoading: loading } = useAdminNoShows()
 
   if (loading) {
     return (

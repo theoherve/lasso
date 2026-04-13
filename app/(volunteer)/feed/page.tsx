@@ -1,8 +1,9 @@
 "use client"
 
-import { Suspense, useEffect, useState, useCallback, useRef } from "react"
+import { Suspense, useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useMissions } from "@/lib/api/queries/missions"
 import Link from "next/link"
 import { Search, ArrowRight, MapPin, X } from "lucide-react"
 import { FilterChips } from "@/components/lasso/FilterChips"
@@ -25,24 +26,6 @@ const arrondissementOptions = Array.from({ length: 20 }, (_, i) => ({
   label: `${i + 1}${i === 0 ? "er" : "e"} arrondissement`,
   short: `${i + 1}${i === 0 ? "er" : "e"}`,
 }))
-
-interface Mission {
-  id: string
-  title: string
-  category: string
-  durationMin: number
-  address: string | null
-  association: {
-    name: string
-    slug: string
-    logoUrl: string | null
-    arrondissement: number
-  }
-  nextSlot: {
-    startsAt: string
-    spotsRemaining: number
-  } | null
-}
 
 function ArrondissementSelect({
   selected,
@@ -151,8 +134,11 @@ function FeedContent() {
   const selectedArrondissements = searchParams.get("arrondissement")?.split(",").filter(Boolean) ?? []
   const searchQuery = searchParams.get("search") ?? ""
 
-  const [missions, setMissions] = useState<Mission[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: missions = [], isLoading: loading } = useMissions({
+    category: selectedCategories,
+    arrondissement: selectedArrondissements,
+    search: searchQuery,
+  })
   const [localSearch, setLocalSearch] = useState(searchQuery)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
 
@@ -174,27 +160,6 @@ function FeedContent() {
       updateParams("search", value)
     }, 300)
   }
-
-  const fetchMissions = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (selectedCategories.length > 0) params.set("category", selectedCategories.join(","))
-      if (selectedArrondissements.length > 0) params.set("arrondissement", selectedArrondissements.join(","))
-      if (searchQuery) params.set("search", searchQuery)
-
-      const res = await fetch(`/api/missions?${params.toString()}`)
-      if (res.ok) {
-        setMissions(await res.json())
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [searchParams.toString()])
-
-  useEffect(() => {
-    fetchMissions()
-  }, [fetchMissions])
 
   return (
     <>

@@ -1,6 +1,8 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use, useState } from "react"
+import { useMissionSlots, useCreateSlot } from "@/lib/api/queries/missions"
+import { ApiError } from "@/lib/api/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,72 +12,40 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Loader2, Plus } from "lucide-react"
 import { formatDateTime } from "@/lib/utils"
 
-interface Slot {
-  id: string
-  startsAt: string
-  endsAt: string
-  spotsTotal: number
-  spotsRemaining: number
-  status: string
-}
-
 export default function SlotsPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
-  const [slots, setSlots] = useState<Slot[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: slots = [], isLoading: loading } = useMissionSlots(id)
+  const createSlot = useCreateSlot(id)
   const [showForm, setShowForm] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  async function fetchSlots() {
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/missions/${id}/slots`)
-      if (res.ok) setSlots(await res.json())
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchSlots()
-  }, [id])
+  const saving = createSlot.isPending
 
   async function handleAddSlot(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setSaving(true)
     setError(null)
 
     const form = new FormData(e.currentTarget)
-    const startsAt = (form.get("startsAt") as string)
-    const endsAt = (form.get("endsAt") as string)
+    const startsAt = form.get("startsAt") as string
+    const endsAt = form.get("endsAt") as string
     const spotsTotal = Number(form.get("spotsTotal"))
 
     try {
-      const res = await fetch(`/api/missions/${id}/slots`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          startsAt: new Date(startsAt).toISOString(),
-          endsAt: new Date(endsAt).toISOString(),
-          spotsTotal,
-        }),
+      await createSlot.mutateAsync({
+        startsAt: new Date(startsAt).toISOString(),
+        endsAt: new Date(endsAt).toISOString(),
+        spotsTotal,
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error ?? "Erreur lors de la creation")
-        return
-      }
-
       setShowForm(false)
-      fetchSlots()
-    } finally {
-      setSaving(false)
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? ((err.body as { error?: string })?.error ?? err.message)
+          : "Erreur lors de la creation"
+      setError(message)
     }
   }
 

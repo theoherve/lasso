@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useCreateMission } from "@/lib/api/queries/missions"
+import { ApiError } from "@/lib/api/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,17 +19,17 @@ import { Loader2 } from "lucide-react"
 
 export default function NewMissionPage() {
   const router = useRouter()
-  const [saving, setSaving] = useState(false)
+  const createMission = useCreateMission()
   const [error, setError] = useState<string | null>(null)
+  const saving = createMission.isPending
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setSaving(true)
     setError(null)
 
     const form = new FormData(e.currentTarget)
 
-    const body = {
+    const input = {
       title: form.get("title") as string,
       description: form.get("description") as string,
       category: form.get("category") as string,
@@ -37,22 +39,14 @@ export default function NewMissionPage() {
     }
 
     try {
-      const res = await fetch("/api/missions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error ?? "Erreur lors de la creation")
-        return
-      }
-
-      const mission = await res.json()
+      const mission = await createMission.mutateAsync(input)
       router.push(`/association/missions/${mission.id}`)
-    } finally {
-      setSaving(false)
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? ((err.body as { error?: string })?.error ?? err.message)
+          : "Erreur lors de la creation"
+      setError(message)
     }
   }
 

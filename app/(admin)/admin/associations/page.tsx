@@ -1,6 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import {
+  useAdminAssociations,
+  useValidateAssociation,
+} from "@/lib/api/queries/admin"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -13,41 +16,12 @@ import {
 } from "@/components/ui/table"
 import { CheckCircle2, XCircle } from "lucide-react"
 
-interface AdminAssociation {
-  id: string
-  name: string
-  slug: string
-  rnaNumber: string | null
-  rnaVerified: boolean
-  humanValidated: boolean
-  arrondissement: number
-  createdAt: string
-  _count: { missions: number; members: number }
-}
-
 export default function AdminAssociationsPage() {
-  const [associations, setAssociations] = useState<AdminAssociation[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: associations = [], isLoading: loading } = useAdminAssociations()
+  const validate = useValidateAssociation()
 
-  useEffect(() => {
-    fetch("/api/admin/associations")
-      .then((r) => r.json())
-      .then(setAssociations)
-      .finally(() => setLoading(false))
-  }, [])
-
-  async function handleValidate(id: string, humanValidated: boolean) {
-    const res = await fetch("/api/admin/associations", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, humanValidated }),
-    })
-
-    if (res.ok) {
-      setAssociations((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, humanValidated } : a)),
-      )
-    }
+  function handleValidate(id: string, humanValidated: boolean) {
+    validate.mutate({ id, humanValidated })
   }
 
   if (loading) {
@@ -101,6 +75,7 @@ export default function AdminAssociationsPage() {
                     <Button
                       size="sm"
                       onClick={() => handleValidate(asso.id, true)}
+                      disabled={validate.isPending}
                     >
                       Valider
                     </Button>
@@ -111,6 +86,7 @@ export default function AdminAssociationsPage() {
                     variant="ghost"
                     className="text-xs text-destructive"
                     onClick={() => handleValidate(asso.id, false)}
+                    disabled={validate.isPending}
                   >
                     Retirer
                   </Button>

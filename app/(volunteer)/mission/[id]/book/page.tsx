@@ -1,9 +1,10 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useMission } from "@/lib/api/queries/missions"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -23,23 +24,6 @@ import {
   generateGoogleCalendarUrl,
 } from "@/lib/utils"
 
-interface MissionDetail {
-  id: string
-  title: string
-  category: string
-  description: string
-  durationMin: number
-  address: string | null
-  association: {
-    name: string
-  }
-  slots: {
-    id: string
-    startsAt: string
-    endsAt: string
-  }[]
-}
-
 export default function BookingConfirmationPage({
   params,
 }: {
@@ -51,19 +35,7 @@ export default function BookingConfirmationPage({
   const { data: session } = useSession()
   const firstName = session?.user?.name?.split(" ")[0] ?? "Toi"
 
-  const [mission, setMission] = useState<MissionDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch(`/api/missions/${id}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("not found")
-        return r.json()
-      })
-      .then(setMission)
-      .catch(() => setMission(null))
-      .finally(() => setLoading(false))
-  }, [id])
+  const { data: mission, isLoading: loading } = useMission(id)
 
   const bookedSlot = mission?.slots.find((s) => s.id === slotId) ?? mission?.slots[0]
   const startsAt = bookedSlot ? new Date(bookedSlot.startsAt) : null

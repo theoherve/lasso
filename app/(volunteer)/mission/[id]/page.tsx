@@ -1,9 +1,11 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useMission, useBookSlot } from "@/lib/api/queries/missions"
+import { ApiError } from "@/lib/api/client"
 import { ArrowLeft, MapPin, Clock, Loader2, Star, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,34 +19,6 @@ import {
   formatDuration,
   formatArrondissement,
 } from "@/lib/utils"
-
-interface Slot {
-  id: string
-  startsAt: string
-  endsAt: string
-  spotsRemaining: number
-  spotsTotal: number
-  status: string
-}
-
-interface MissionDetail {
-  id: string
-  title: string
-  category: string
-  description: string
-  durationMin: number
-  address: string | null
-  association: {
-    name: string
-    slug: string
-    logoUrl: string | null
-    arrondissement: number
-    humanValidated: boolean
-    avgRating: number | null
-    _count?: { missions: number }
-  }
-  slots: Slot[]
-}
 
 function RatingDisplay({ rating, count }: { rating: number | null; count?: number }) {
   if (!rating) return null
@@ -68,22 +42,11 @@ export default function MissionDetailPage({
   const router = useRouter()
   const { data: session } = useSession()
   const isLoggedIn = !!session?.user
-  const [mission, setMission] = useState<MissionDetail | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: mission, isLoading: loading, isError } = useMission(id)
+  const bookSlot = useBookSlot()
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
-  const [booking, setBooking] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch(`/api/missions/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("not found")
-        return res.json()
-      })
-      .then(setMission)
-      .catch(() => setMission(null))
-      .finally(() => setLoading(false))
-  }, [id])
+  const booking = bookSlot.isPending
 
   async function handleBook() {
     if (!selectedSlot) return
@@ -93,25 +56,16 @@ export default function MissionDetailPage({
       return
     }
 
-    setBooking(true)
     setError(null)
-
     try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slotId: selectedSlot }),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error ?? "Erreur lors de la reservation")
-        return
-      }
-
+      await bookSlot.mutateAsync(selectedSlot)
       router.push(`/mission/${id}/book?slotId=${selectedSlot}`)
-    } finally {
-      setBooking(false)
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? ((err.body as { error?: string })?.error ?? err.message)
+          : "Erreur lors de la reservation"
+      setError(message)
     }
   }
 
@@ -128,7 +82,7 @@ export default function MissionDetailPage({
     )
   }
 
-  if (!mission) {
+  if (isError || !mission) {
     return (
       <div className="py-12 text-center">
         <p className="text-muted-foreground">Mission introuvable.</p>

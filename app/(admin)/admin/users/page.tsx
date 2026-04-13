@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useAdminUsers, useUpdateUserRoles } from "@/lib/api/queries/admin"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -15,47 +15,17 @@ import {
 import { ReliabilityScore } from "@/components/lasso/ReliabilityScore"
 import { formatDateTime } from "@/lib/utils"
 
-interface AdminUser {
-  id: string
-  email: string
-  name: string | null
-  firstName: string | null
-  roles: string[]
-  reliabilityScore: number
-  noShowCount: number
-  createdAt: string
-}
-
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: users = [], isLoading: loading } = useAdminUsers()
+  const updateRoles = useUpdateUserRoles()
 
-  useEffect(() => {
-    fetch("/api/admin/users")
-      .then((r) => r.json())
-      .then(setUsers)
-      .finally(() => setLoading(false))
-  }, [])
-
-  async function toggleRole(userId: string, currentRoles: string[], role: string) {
+  function toggleRole(userId: string, currentRoles: string[], role: string) {
     const newRoles = currentRoles.includes(role)
       ? currentRoles.filter((r) => r !== role)
       : [...currentRoles, role]
 
     if (newRoles.length === 0) return
-
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, roles: newRoles }),
-    })
-
-    if (res.ok) {
-      const updated = await res.json()
-      setUsers((prev) =>
-        prev.map((u) => (u.id === updated.id ? { ...u, roles: updated.roles } : u)),
-      )
-    }
+    updateRoles.mutate({ userId, roles: newRoles })
   }
 
   if (loading) {
@@ -119,6 +89,7 @@ export default function AdminUsersPage() {
                       variant="outline"
                       className="text-xs"
                       onClick={() => toggleRole(user.id, user.roles, "ASSOCIATION")}
+                      disabled={updateRoles.isPending}
                     >
                       + Asso
                     </Button>
@@ -129,6 +100,7 @@ export default function AdminUsersPage() {
                       variant="outline"
                       className="text-xs"
                       onClick={() => toggleRole(user.id, user.roles, "ADMIN")}
+                      disabled={updateRoles.isPending}
                     >
                       + Admin
                     </Button>

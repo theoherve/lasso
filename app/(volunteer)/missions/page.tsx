@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,54 +10,27 @@ import { EmptyState } from "@/components/lasso/EmptyState"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CalendarDays, Clock, MapPin, X, Star } from "lucide-react"
 import { formatDateTime, formatDuration, formatArrondissement } from "@/lib/utils"
-
-interface BookingItem {
-  id: string
-  status: string
-  rating: { id: string; score: number } | null
-  slot: {
-    startsAt: string
-    endsAt: string
-    mission: {
-      id: string
-      title: string
-      durationMin: number
-      association: {
-        name: string
-        arrondissement: number
-      }
-    }
-  }
-}
+import {
+  useMyBookings,
+  useCancelBooking,
+  useRateBooking,
+  type BookingItem,
+} from "@/lib/api/queries/bookings"
 
 function RatingStars({
   bookingId,
   existingScore,
-  onRated,
 }: {
   bookingId: string
   existingScore: number | null
-  onRated: (bookingId: string, score: number) => void
 }) {
   const [hovering, setHovering] = useState(0)
-  const [submitting, setSubmitting] = useState(false)
+  const rate = useRateBooking()
   const score = existingScore
 
-  async function handleRate(value: number) {
-    if (score) return
-    setSubmitting(true)
-    try {
-      const res = await fetch("/api/ratings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId, score: value }),
-      })
-      if (res.ok) {
-        onRated(bookingId, value)
-      }
-    } finally {
-      setSubmitting(false)
-    }
+  function handleRate(value: number) {
+    if (score || rate.isPending) return
+    rate.mutate({ bookingId, score: value })
   }
 
   return (
@@ -66,7 +39,7 @@ function RatingStars({
         <button
           key={i}
           type="button"
-          disabled={!!score || submitting}
+          disabled={!!score || rate.isPending}
           onClick={() => handleRate(i)}
           onMouseEnter={() => !score && setHovering(i)}
           className="p-0.5 disabled:cursor-default"
@@ -92,13 +65,11 @@ function BookingList({
   onCancel,
   showCancel,
   showRating,
-  onRated,
 }: {
   bookings: BookingItem[]
   onCancel?: (id: string) => void
   showCancel?: boolean
   showRating?: boolean
-  onRated?: (bookingId: string, score: number) => void
 }) {
   if (bookings.length === 0) {
     return (
@@ -151,12 +122,10 @@ function BookingList({
                 </Button>
               )}
               {showRating &&
-                (booking.status === "COMPLETED" || booking.status === "CONFIRMED") &&
-                onRated && (
+                (booking.status === "COMPLETED" || booking.status === "CONFIRMED") && (
                   <RatingStars
                     bookingId={booking.id}
                     existingScore={booking.rating?.score ?? null}
-                    onRated={onRated}
                   />
                 )}
             </div>
@@ -168,41 +137,16 @@ function BookingList({
 }
 
 export default function MissionsPage() {
-  const [upcoming, setUpcoming] = useState<BookingItem[]>([])
-  const [past, setPast] = useState<BookingItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const upcomingQ = useMyBookings("upcoming")
+  const pastQ = useMyBookings("past")
+  const cancel = useCancelBooking()
 
-  async function fetchBookings() {
-    setLoading(true)
-    try {
-      const [upRes, pastRes] = await Promise.all([
-        fetch("/api/users/me/bookings?period=upcoming"),
-        fetch("/api/users/me/bookings?period=past"),
-      ])
-      if (upRes.ok) setUpcoming(await upRes.json())
-      if (pastRes.ok) setPast(await pastRes.json())
-    } finally {
-      setLoading(false)
-    }
-  }
+  const upcoming = upcomingQ.data ?? []
+  const past = pastQ.data ?? []
+  const loading = upcomingQ.isLoading || pastQ.isLoading
 
-  useEffect(() => {
-    fetchBookings()
-  }, [])
-
-  async function handleCancel(bookingId: string) {
-    const res = await fetch(`/api/bookings/${bookingId}`, { method: "DELETE" })
-    if (res.ok) {
-      setUpcoming((prev) => prev.filter((b) => b.id !== bookingId))
-    }
-  }
-
-  function handleRated(bookingId: string, score: number) {
-    setPast((prev) =>
-      prev.map((b) =>
-        b.id === bookingId ? { ...b, rating: { id: "new", score } } : b,
-      ),
-    )
+  function handleCancel(bookingId: string) {
+    cancel.mutate(bookingId)
   }
 
   if (loading) {
@@ -234,7 +178,7 @@ export default function MissionsPage() {
           <BookingList bookings={upcoming} onCancel={handleCancel} showCancel />
         </TabsContent>
         <TabsContent value={1} className="mt-4">
-          <BookingList bookings={past} showRating onRated={handleRated} />
+          <BookingList bookings={past} showRating />
         </TabsContent>
       </Tabs>
     </div>

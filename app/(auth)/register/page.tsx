@@ -4,6 +4,8 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRegister } from "@/lib/api/queries/auth"
+import { ApiError } from "@/lib/api/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,13 +23,14 @@ const arrondissements = Array.from({ length: 20 }, (_, i) => i + 1)
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const register = useRegister()
+  const [signingIn, setSigningIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [arrondissement, setArrondissement] = useState<string>("")
+  const loading = register.isPending || signingIn
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
     setError(null)
 
     const form = new FormData(e.currentTarget)
@@ -35,23 +38,24 @@ export default function RegisterPage() {
     const password = form.get("password") as string
     const firstName = form.get("firstName") as string
 
-    const body: Record<string, unknown> = { email, password, firstName }
-    if (arrondissement) body.arrondissement = Number(arrondissement)
-
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+      await register.mutateAsync({
+        email,
+        password,
+        firstName,
+        arrondissement: arrondissement ? Number(arrondissement) : undefined,
       })
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? ((err.body as { error?: string })?.error ?? err.message)
+          : "Erreur reseau"
+      setError(message)
+      return
+    }
 
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error ?? "Erreur lors de la creation du compte")
-        setLoading(false)
-        return
-      }
-
+    setSigningIn(true)
+    try {
       const result = await signIn("credentials", {
         email,
         password,
@@ -65,10 +69,8 @@ export default function RegisterPage() {
 
       router.push("/feed")
       router.refresh()
-    } catch {
-      setError("Erreur reseau")
     } finally {
-      setLoading(false)
+      setSigningIn(false)
     }
   }
 

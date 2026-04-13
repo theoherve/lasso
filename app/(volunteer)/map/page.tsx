@@ -1,19 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { MissionMap } from "@/components/lasso/MissionMap"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useMissions } from "@/lib/api/queries/missions"
 
 export default function MapPage() {
-  const [missions, setMissions] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch("/api/missions")
-      .then((r) => r.json())
-      .then(setMissions)
-      .finally(() => setLoading(false))
-  }, [])
+  const { data: missions = [], isLoading: loading } = useMissions()
 
   return (
     <div className="space-y-4">
