@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useAdminMissions, useUpdateMissionStatus } from "@/lib/api/queries/admin"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/lasso/StatusBadge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -14,39 +14,12 @@ import {
 } from "@/components/ui/table"
 import { formatDateTime } from "@/lib/utils"
 
-interface AdminMission {
-  id: string
-  title: string
-  status: string
-  category: string
-  createdAt: string
-  association: { name: string }
-  _count: { slots: number }
-}
-
 export default function AdminMissionsPage() {
-  const [missions, setMissions] = useState<AdminMission[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: missions = [], isLoading: loading } = useAdminMissions()
+  const updateStatus = useUpdateMissionStatus()
 
-  useEffect(() => {
-    fetch("/api/admin/missions")
-      .then((r) => r.json())
-      .then(setMissions)
-      .finally(() => setLoading(false))
-  }, [])
-
-  async function handleCancel(id: string) {
-    const res = await fetch("/api/admin/missions", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status: "CANCELLED" }),
-    })
-
-    if (res.ok) {
-      setMissions((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, status: "CANCELLED" } : m)),
-      )
-    }
+  function handleCancel(id: string) {
+    updateStatus.mutate({ id, status: "CANCELLED" })
   }
 
   if (loading) {
@@ -95,6 +68,7 @@ export default function AdminMissionsPage() {
                     size="sm"
                     variant="destructive"
                     onClick={() => handleCancel(mission.id)}
+                    disabled={updateStatus.isPending}
                   >
                     Annuler
                   </Button>

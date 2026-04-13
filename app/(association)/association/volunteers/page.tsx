@@ -1,23 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useAssociationVolunteers } from "@/lib/api/queries/associations"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { VolunteerRow } from "@/components/lasso/VolunteerRow"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Users } from "lucide-react"
-
-interface VolunteerBooking {
-  id: string
-  status: string
-  user: {
-    id: string
-    firstName: string | null
-    name: string | null
-    avatarUrl: string | null
-    reliabilityScore: number
-  }
-}
 
 const statuses = ["Tous", "CONFIRMED", "COMPLETED", "NO_SHOW", "CANCELLED"] as const
 const statusLabels: Record<string, string> = {
@@ -30,20 +19,7 @@ const statusLabels: Record<string, string> = {
 
 export default function VolunteersPage() {
   const [filter, setFilter] = useState<string>("Tous")
-  const [bookings, setBookings] = useState<VolunteerBooking[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/associations/me/bookings")
-        if (res.ok) setBookings(await res.json())
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
+  const { data: bookings = [], isLoading: loading } = useAssociationVolunteers()
 
   const filtered =
     filter === "Tous"

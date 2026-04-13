@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useMe, useMyBadges, useUpdateMe } from "@/lib/api/queries/profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,80 +12,47 @@ import { ReliabilityScore } from "@/components/lasso/ReliabilityScore"
 import Link from "next/link"
 import { CalendarDays, Clock, MapPin, Pencil, Check, X, Trophy, Building2 } from "lucide-react"
 
-interface UserProfile {
-  id: string
-  firstName: string | null
-  name: string | null
-  email: string
-  arrondissement: number | null
-  avatarUrl: string | null
-  bio: string | null
-  reliabilityScore: number
-  _count?: {
-    bookings: number
-  }
-}
-
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: user, isLoading: userLoading } = useMe()
+  const { data: badgesResp, isLoading: badgesLoading } = useMyBadges()
+  const updateMe = useUpdateMe()
+
+  const loading = userLoading || badgesLoading
+  const saving = updateMe.isPending
+  const badges = badgesResp?.badges ?? []
+  const stats = badgesResp?.stats ?? { missionsCompleted: 0, totalHours: 0 }
+
   const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     firstName: "",
     name: "",
     arrondissement: "",
     bio: "",
   })
-  const [badges, setBadges] = useState<
-    { id: string; name: string; description: string; icon: string }[]
-  >([])
-  const [stats, setStats] = useState({
-    missionsCompleted: 0,
-    totalHours: 0,
-  })
 
+  // Hydrate form once the user profile loads.
   useEffect(() => {
-    Promise.all([
-      fetch("/api/users/me").then((r) => r.json()),
-      fetch("/api/users/me/badges").then((r) => r.json()),
-    ])
-      .then(([data, badgeData]) => {
-        setUser(data)
-        setForm({
-          firstName: data.firstName ?? "",
-          name: data.name ?? "",
-          arrondissement: data.arrondissement ? String(data.arrondissement) : "",
-          bio: data.bio ?? "",
-        })
-        if (badgeData.badges) setBadges(badgeData.badges)
-        if (badgeData.stats) setStats(badgeData.stats)
-      })
-      .finally(() => setLoading(false))
-  }, [])
+    if (!user) return
+    setForm({
+      firstName: user.firstName ?? "",
+      name: user.name ?? "",
+      arrondissement: user.arrondissement ? String(user.arrondissement) : "",
+      bio: user.bio ?? "",
+    })
+  }, [user])
 
   async function handleSave() {
-    setSaving(true)
+    const input: Parameters<typeof updateMe.mutateAsync>[0] = {}
+    if (form.firstName) input.firstName = form.firstName
+    if (form.name) input.name = form.name
+    if (form.bio) input.bio = form.bio
+    if (form.arrondissement) input.arrondissement = Number(form.arrondissement)
+
     try {
-      const body: Record<string, unknown> = {}
-      if (form.firstName) body.firstName = form.firstName
-      if (form.name) body.name = form.name
-      if (form.bio) body.bio = form.bio
-      if (form.arrondissement) body.arrondissement = Number(form.arrondissement)
-
-      const res = await fetch("/api/users/me", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-
-      if (res.ok) {
-        const updated = await res.json()
-        setUser(updated)
-        setEditing(false)
-      }
-    } finally {
-      setSaving(false)
+      await updateMe.mutateAsync(input)
+      setEditing(false)
+    } catch {
+      // error state surfaced via mutation.isError if needed — keep silent for now
     }
   }
 

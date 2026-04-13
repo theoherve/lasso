@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useCreateAssociation } from "@/lib/api/queries/associations"
+import { ApiError } from "@/lib/api/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,54 +21,43 @@ const arrondissements = Array.from({ length: 20 }, (_, i) => i + 1)
 
 export default function DevenirAssociationPage() {
   const router = useRouter()
-  const [saving, setSaving] = useState(false)
+  const createAssociation = useCreateAssociation()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [category, setCategory] = useState("")
   const [arrondissement, setArrondissement] = useState("")
+  const saving = createAssociation.isPending
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setSaving(true)
     setError(null)
 
     const form = new FormData(e.currentTarget)
 
-    const body: Record<string, unknown> = {
+    const input = {
       name: form.get("name") as string,
       description: form.get("description") as string,
       address: form.get("address") as string,
       category,
       arrondissement: Number(arrondissement),
+      rnaNumber: ((form.get("rnaNumber") as string) || "").trim() || undefined,
+      website: ((form.get("website") as string) || "").trim() || undefined,
     }
 
-    const rna = (form.get("rnaNumber") as string)?.trim()
-    if (rna) body.rnaNumber = rna
-
-    const website = (form.get("website") as string)?.trim()
-    if (website) body.website = website
-
     try {
-      const res = await fetch("/api/associations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error ?? "Erreur lors de la creation")
-        return
-      }
-
+      await createAssociation.mutateAsync(input)
       setSuccess(true)
       // Refresh session to get the new ASSOCIATION role
       setTimeout(() => {
         router.push("/association/dashboard")
         router.refresh()
       }, 2000)
-    } finally {
-      setSaving(false)
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? ((err.body as { error?: string })?.error ?? err.message)
+          : "Erreur lors de la creation"
+      setError(message)
     }
   }
 

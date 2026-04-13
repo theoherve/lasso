@@ -1,6 +1,5 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { Bell, Check, CheckCheck } from "lucide-react"
 import { formatDistanceToNow } from "@/lib/utils"
@@ -12,66 +11,22 @@ import {
   PopoverTitle,
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-
-interface Notification {
-  id: string
-  type: string
-  title: string
-  message: string
-  link: string | null
-  read: boolean
-  createdAt: string
-}
+import {
+  useNotifications,
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+} from "@/lib/api/queries/notifications"
 
 export function NotificationBell() {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const { data } = useNotifications()
+  const markAll = useMarkAllNotificationsRead()
+  const markOne = useMarkNotificationRead()
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifications")
-      if (res.ok) {
-        const data = await res.json()
-        setNotifications(data.notifications)
-        setUnreadCount(data.unreadCount)
-      }
-    } catch {
-      // silent fail
-    }
-  }, [])
+  const notifications = data?.notifications ?? []
+  const unreadCount = data?.unreadCount ?? 0
 
-  useEffect(() => {
-    fetchNotifications()
-    const interval = setInterval(fetchNotifications, 30_000)
-    return () => clearInterval(interval)
-  }, [fetchNotifications])
-
-  async function markAllRead() {
-    setLoading(true)
-    try {
-      await fetch("/api/notifications", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ all: true }),
-      })
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-      setUnreadCount(0)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function markOneRead(id: string) {
-    await fetch("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: [id] }),
-    })
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    )
-    setUnreadCount((c) => Math.max(0, c - 1))
+  function handleMarkOneRead(id: string) {
+    markOne.mutate(id)
   }
 
   return (
@@ -91,8 +46,8 @@ export function NotificationBell() {
             <Button
               variant="ghost"
               size="xs"
-              onClick={markAllRead}
-              disabled={loading}
+              onClick={() => markAll.mutate()}
+              disabled={markAll.isPending}
               className="cursor-pointer text-xs text-muted-foreground"
             >
               <CheckCheck className="mr-1 size-3.5" />
@@ -115,7 +70,7 @@ export function NotificationBell() {
                       : "bg-primary/5"
                   } ${notif.link ? "cursor-pointer hover:bg-accent" : ""}`}
                   onClick={() => {
-                    if (!notif.read) markOneRead(notif.id)
+                    if (!notif.read) handleMarkOneRead(notif.id)
                   }}
                 >
                   <div className="mt-0.5">
@@ -143,7 +98,7 @@ export function NotificationBell() {
                     key={notif.id}
                     href={notif.link}
                     onClick={() => {
-                      if (!notif.read) markOneRead(notif.id)
+                      if (!notif.read) handleMarkOneRead(notif.id)
                     }}
                   >
                     {content}
