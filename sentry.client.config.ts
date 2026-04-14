@@ -13,13 +13,19 @@ Sentry.init({
   // Set `tracePropagationTargets` to control for which URLs trace propagation should be enabled
   tracePropagationTargets: ["localhost", /^\/api\//],
 
-  // Enable Session Replay
-  integrations: [
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
-  ],
+  // Enable Session Replay (skip if another instance already registered, e.g. Vercel toolbar)
+  integrations: (defaults) => {
+    const hasReplay = defaults.some((i) => i.name === "Replay")
+    return hasReplay
+      ? defaults
+      : [
+          ...defaults,
+          Sentry.replayIntegration({
+            maskAllText: true,
+            blockAllMedia: true,
+          }),
+        ]
+  },
 
   // Session Replay sample rates
   replaysSessionSampleRate: 0.1,
