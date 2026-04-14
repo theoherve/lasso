@@ -4,20 +4,6 @@
 
 import * as Sentry from "@sentry/nextjs"
 
-function getReplayIntegration() {
-  try {
-    return Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-    })
-  } catch {
-    // Vercel toolbar may already have a Replay instance — skip silently
-    return null
-  }
-}
-
-const replay = getReplayIntegration()
-
 Sentry.init({
   dsn: "https://4fabb0dd2befa2a981c1f8fe9988be58@o4504759198220288.ingest.us.sentry.io/4511206978486272",
 
@@ -27,11 +13,10 @@ Sentry.init({
   // Set `tracePropagationTargets` to control for which URLs trace propagation should be enabled
   tracePropagationTargets: ["localhost", /^\/api\//],
 
-  integrations: replay ? [replay] : [],
-
-  // Session Replay sample rates
-  replaysSessionSampleRate: replay ? 0.1 : 0,
-  replaysOnErrorSampleRate: replay ? 1.0 : 0,
+  // Session Replay disabled — Vercel toolbar injects its own Sentry Replay instance,
+  // and multiple instances crash the JS bundle, breaking hydration.
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0,
 
   // Enable sending user PII
   sendDefaultPii: true,
