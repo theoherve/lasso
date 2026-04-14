@@ -82,8 +82,7 @@ export function InstallPrompt() {
       <div
         role="dialog"
         aria-label="Installer Lasso"
-        className="fixed inset-x-3 bottom-3 z-40 flex items-center gap-3 rounded-xl border bg-card p-3 shadow-warm-lg md:left-auto md:right-4 md:max-w-sm"
-        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex items-center gap-3 rounded-xl border bg-card p-3 shadow-warm-lg transition-[bottom] duration-200 md:bottom-3 md:left-auto md:right-4 md:max-w-sm"
       >
         <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Download className="h-5 w-5" />
@@ -115,8 +114,7 @@ export function InstallPrompt() {
       <div
         role="dialog"
         aria-label="Installer Lasso sur iOS"
-        className="fixed inset-x-3 bottom-3 z-40 flex items-start gap-3 rounded-xl border bg-card p-3 shadow-warm-lg md:left-auto md:right-4 md:max-w-sm"
-        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        className="fixed inset-x-3 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex items-start gap-3 rounded-xl border bg-card p-3 shadow-warm-lg transition-[bottom] duration-200 md:bottom-3 md:left-auto md:right-4 md:max-w-sm"
       >
         <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Share className="h-5 w-5" />
