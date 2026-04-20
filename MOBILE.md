@@ -135,21 +135,35 @@ Détails providers : voir §7.
 
 ## 6. Plugins Capacitor utilisés
 
-| Plugin | Rôle |
-|--------|------|
-| `@capacitor/push-notifications` | Rappels missions, nouveaux créneaux |
-| `@capacitor/geolocation` | Remplace `navigator.geolocation` natif |
-| `@capacitor/camera` | Photo profil, justif no-show asso |
-| `@capacitor/share` | Partage mission |
-| `@capacitor/haptics` | Feedback tactile booking |
-| `@capacitor/status-bar` | Style barre d'état |
-| `@capacitor/splash-screen` | Splash natif |
-| `@capacitor/preferences` | Remplace `localStorage` en natif |
-| `@capacitor/app` | Deep links + back-button Android |
-| `@capacitor/browser` | OAuth via browser système |
-| `@sentry/capacitor` | Crash reporting natif (en plus du JS) |
+| Plugin | Rôle | État |
+|--------|------|------|
+| `@capacitor/core` | Runtime + détection plateforme | ✅ installé |
+| `@capacitor/app` | Deep links + back-button Android | ✅ wired dans `NativeBootstrap` |
+| `@capacitor/browser` | OAuth via browser système | ✅ helper `openBrowser()` |
+| `@capacitor/haptics` | Feedback tactile booking | ✅ helpers `haptics.impact/notification/selection` |
+| `@capacitor/preferences` | Storage natif (remplace localStorage) | ✅ helpers `storage.get/set/remove` |
+| `@capacitor/share` | Partage mission | ✅ helper `share()` |
+| `@capacitor/splash-screen` | Splash natif | ✅ `SplashScreen.hide()` au mount |
+| `@capacitor/status-bar` | Style barre d'état | ✅ `NativeBootstrap` set style + couleur |
+| `@capacitor/push-notifications` | Rappels missions | ⏳ Phase 2b (backend requis) |
+| `@capacitor/geolocation` | Remplace `navigator.geolocation` | ⏳ Phase 4 (feed + carte) |
+| `@capacitor/camera` | Photo profil, justif no-show | ⏳ Phase 2c |
+| `@sentry/capacitor` | Crash reporting natif | ⏳ Phase 9 |
 
-Abstraction : `src/lib/platform.ts` expose helpers unifiés (`isNative()`, `storage.get/set`, `notify()`, …). Fallback web si pas Capacitor.
+**Abstraction** : [`lib/platform.ts`](lib/platform.ts) expose :
+- `isNative()`, `getPlatform()`, `isNativeIOS()`, `isNativeAndroid()`
+- `storage.get/set/remove` (Preferences natif ↔ localStorage web)
+- `haptics.impact/notification/selection` (no-op web)
+- `share(options)` (native → Web Share API → no-op)
+- `openBrowser(url)` (ASWebAuthSession/Custom Tabs natif ↔ `window.open` web)
+
+**Bootstrap natif** : [`components/pwa/NativeBootstrap.tsx`](components/pwa/NativeBootstrap.tsx) monté dans `app/layout.tsx` gère au boot :
+1. Status bar style + couleur (Android)
+2. Splash screen hide (200 ms fade)
+3. Listener `appUrlOpen` → `router.push(pathname+search+hash)` (deep links)
+4. Listener `backButton` Android → `history.back()` ou `App.exitApp()` si racine
+
+**Règle imports** : les packages `@capacitor/*` sont déclarés dans le `package.json` **racine** (pour import Next.js) ET dans `mobile/package.json` (pour que `cap sync` propage les natifs). pnpm dédupe via symlinks.
 
 ---
 
