@@ -174,19 +174,35 @@ Détails providers : voir §7.
 - **Apple** (Sign in with Apple — **obligatoire iOS**, App Store Guideline 4.8)
 - **Credentials** (email + password)
 
-### Flow natif
-OAuth passe par le **navigateur système** (jamais la WebView) :
-- iOS : ASWebAuthenticationSession
-- Android : Chrome Custom Tabs
+### État actuel du wiring
+- [`lib/auth.ts`](lib/auth.ts) : provider Apple ajouté **conditionnellement** (activé si `AUTH_APPLE_ID` + `AUTH_APPLE_SECRET` présents). `scope: "name email"`, `response_mode: "form_post"`.
+- [`lib/native-auth.ts`](lib/native-auth.ts) : helper `nativeSignIn(providerId, { callbackUrl })` — web → `signIn()` classique, natif → ouvre l'URL NextAuth dans le browser système via `@capacitor/browser`.
+- [`app/(auth)/login/page.tsx`](app/(auth)/login/page.tsx) : bouton Apple affiché si `NEXT_PUBLIC_APPLE_AUTH_ENABLED=true`.
+- [`app/.well-known/apple-app-site-association/route.ts`](app/.well-known/apple-app-site-association/route.ts) : AASA dynamique, `APPLE_TEAM_ID` env var → détail Universal Links.
+- [`app/.well-known/assetlinks.json/route.ts`](app/.well-known/assetlinks.json/route.ts) : Android App Links, `ANDROID_SHA256_FINGERPRINTS` env var (liste CSV).
 
-Déclenché via `@capacitor/browser`, retour via deep link Universal Link (iOS) / App Link (Android).
+### 🔴 TODO critique — pont de session WebView ↔ browser système
+NextAuth pose le cookie de session dans le **cookie jar du browser système** (SFSafariViewController / Chrome Custom Tabs). La WKWebView (iOS) et la WebView Android ne partagent **pas** ce jar.
 
-### Deep links
-Fichiers Next.js à exposer (Phase 3) :
-- `app/.well-known/apple-app-site-association/route.ts`
-- `app/.well-known/assetlinks.json/route.ts`
+Flow complet à implémenter (prochaine itération Phase 3) :
+1. Après callback OAuth, NextAuth doit rediriger vers `https://lasso.app/auth/mobile-return?state=XXX`
+2. Route `auth/mobile-return` génère un **token d'échange** court (5 min max, JWT signé HS256)
+3. Redirect vers Universal Link `https://lasso.app/auth/mobile-bridge?token=YYY` qui est capté par `NativeBootstrap.appUrlOpen` listener
+4. WebView appelle `POST /api/auth/mobile-exchange` avec le token → le serveur pose le cookie `next-auth.session-token` **sur la WebView**
+5. `router.push("/feed")`
 
-Bundle ID / package name déclarés dedans : `fr.lasso.app`.
+Fichiers à créer : `app/auth/mobile-return/route.ts`, `app/api/auth/mobile-exchange/route.ts`. Logique d'exchange à ajouter dans `NativeBootstrap`.
+
+### Variables d'environnement requises
+| Var | Scope | Source |
+|-----|-------|--------|
+| `AUTH_APPLE_ID` | server | Apple Services ID (ex. `fr.lasso.app.web`) |
+| `AUTH_APPLE_SECRET` | server | JWT client secret (regénérer tous les 6 mois) |
+| `AUTH_APPLE_TEAM_ID` | server | Apple Team ID (10 chars) |
+| `AUTH_APPLE_KEY_ID` | server | Apple Key ID (10 chars) |
+| `NEXT_PUBLIC_APPLE_AUTH_ENABLED` | client | `"true"` pour afficher bouton |
+| `APPLE_TEAM_ID` | server | Même valeur que ci-dessus, utilisé par AASA |
+| `ANDROID_SHA256_FINGERPRINTS` | server | CSV fingerprints SHA-256 du keystore (debug + release) |
 
 ### Rotation client secret Apple
 Le JWT Apple expire **tous les 6 mois maximum**. Procédure (TBD — script automatisé à écrire) :

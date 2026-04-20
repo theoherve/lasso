@@ -4,13 +4,15 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Loader2 } from "lucide-react"
+import { nativeSignIn } from "@/lib/native-auth"
+
+const appleEnabled = process.env.NEXT_PUBLIC_APPLE_AUTH_ENABLED === "true"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -97,7 +99,7 @@ export default function LoginPage() {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => signIn("google", { callbackUrl: "/feed" })}
+          onClick={() => nativeSignIn("google", { callbackUrl: "/feed" })}
         >
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
             <path
@@ -119,6 +121,24 @@ export default function LoginPage() {
           </svg>
           Google
         </Button>
+
+        {appleEnabled && (
+          <Button
+            variant="outline"
+            className="w-full bg-black text-white hover:bg-black/90 hover:text-white"
+            onClick={() => nativeSignIn("apple", { callbackUrl: "/feed" })}
+          >
+            <svg
+              className="mr-2 h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M17.05 12.536c-.03-3.015 2.46-4.463 2.573-4.534-1.403-2.05-3.587-2.33-4.366-2.362-1.855-.188-3.622 1.09-4.562 1.09-.94 0-2.39-1.063-3.934-1.032-2.022.029-3.89 1.177-4.93 2.986-2.103 3.645-.537 9.04 1.505 12.003 1 1.45 2.185 3.073 3.743 3.015 1.506-.06 2.074-.975 3.892-.975 1.82 0 2.33.975 3.924.946 1.62-.029 2.646-1.472 3.633-2.93 1.148-1.68 1.62-3.31 1.648-3.395-.036-.014-3.16-1.213-3.192-4.812zm-3.02-8.836c.833-1.012 1.395-2.417 1.242-3.822-1.2.048-2.658.8-3.52 1.813-.772.896-1.447 2.33-1.266 3.707 1.34.104 2.71-.68 3.544-1.698z" />
+            </svg>
+            Continuer avec Apple
+          </Button>
+        )}
 
         <p className="text-center text-sm text-muted-foreground">
           Pas encore de compte ?{" "}
