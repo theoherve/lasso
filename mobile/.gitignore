@@ -1,0 +1,37 @@
+# Capacitor generated platforms — keep source tracked but ignore build artifacts
+ios/App/Pods/
+ios/App/build/
+ios/App/DerivedData/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+ios/.xcode.env.local
+
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+android/app/debug/
+android/local.properties
+android/captures/
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/app/google-services.json
+android/app/src/release/
+
+# Node
+node_modules/
+
+# Capacitor config overrides
+capacitor.config.local.ts
+www/
+
+# Signing (NEVER commit)
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+.env
+.env.local

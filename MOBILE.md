@@ -45,18 +45,22 @@ Détails stratégiques et charge estimée : voir plan de travail interne.
 
 ## 3. Architecture
 
+**Choix pragmatique** : on ne restructure PAS en Turborepo `apps/web/` + `apps/mobile/`. Le wrapper Capacitor charge l'URL web via `server.url` — il n'y a aucun code partagé à extraire. Le Next.js reste à la racine, `mobile/` est un simple workspace pnpm sibling.
+
 ```
 lasso/
-├── apps/
-│   ├── web/              Next.js 16 (déplacé ici depuis la racine)
-│   └── mobile/           Capacitor
-│       ├── ios/          Xcode project (généré)
-│       ├── android/      Gradle project (généré)
-│       ├── capacitor.config.ts
-│       └── package.json
-├── packages/             (réservé pour code partagé — TBD)
-├── turbo.json
-├── pnpm-workspace.yaml
+├── app/                  Next.js 16 (inchangé, à la racine)
+├── components/           (inchangé)
+├── lib/                  (inchangé — contient lib/platform.ts)
+├── prisma/               (inchangé)
+├── public/               (inchangé)
+├── mobile/               Capacitor wrapper
+│   ├── capacitor.config.ts
+│   ├── package.json       (workspace pnpm)
+│   ├── www/               placeholder (ignoré si server.url défini)
+│   ├── ios/               Xcode project — généré via `cap add ios` (TBD)
+│   └── android/           Gradle project — généré via `cap add android` (TBD)
+├── pnpm-workspace.yaml   packages: - "mobile"
 └── MOBILE.md             (ce fichier)
 ```
 
@@ -71,30 +75,43 @@ Capacitor charge l'URL web de prod dans la WebView via `server.url`. Pas d'expor
 ### Prérequis
 - macOS (iOS obligatoire)
 - Xcode 15+ et Xcode Command Line Tools
+- CocoaPods : `brew install cocoapods`
 - Android Studio + JDK 17
 - pnpm installé globalement
-- Node.js 24 LTS
+- **Node.js ≥ 20** (actuellement figé à **Capacitor v7** pour compat Node 20. Capacitor v8 requiert Node ≥ 22 — à upgrader quand possible via `nvm install 22` puis bump `mobile/package.json` à `^8.0.0`)
 
-### Commandes
+### Premier setup (one-time)
+
+Les dossiers `mobile/ios/` et `mobile/android/` ne sont **pas encore générés**. À lancer depuis la racine après `pnpm install` :
 
 ```bash
-# Depuis apps/mobile/
-pnpm install
-pnpm exec cap sync
-
-# iOS
-pnpm exec cap open ios    # ouvre Xcode
-pnpm exec cap run ios     # lance sur simulateur / device
-
-# Android
-pnpm exec cap open android    # ouvre Android Studio
-pnpm exec cap run android
+# Depuis mobile/
+cd mobile
+CAP_SERVER_URL="http://$(ipconfig getifaddr en0):3000" pnpm add:ios
+CAP_SERVER_URL="http://$(ipconfig getifaddr en0):3000" pnpm add:android
+pnpm sync
 ```
 
-`capacitor.config.ts` pointe `server.url` :
-- Dev : `http://<ip-locale>:3000` (Next.js dev server sur LAN, device et machine même réseau)
-- Staging : URL preview Vercel
-- Prod : URL canonique
+Note iOS : nécessite **Xcode + CocoaPods** installés (`brew install cocoapods`).
+Note Android : nécessite **Android Studio + JDK 17**.
+
+### Commandes récurrentes
+
+```bash
+# Depuis mobile/
+pnpm sync                 # resynchronise www/ + plugins → projets natifs
+pnpm ios:open             # ouvre Xcode
+pnpm ios:run              # lance sur simulateur / device
+pnpm android:open         # ouvre Android Studio
+pnpm android:run
+```
+
+`capacitor.config.ts` lit `server.url` depuis la variable d'env `CAP_SERVER_URL` :
+- **Dev** : `http://<ip-locale>:3000` (Next.js dev server sur LAN, device et Mac sur le même réseau Wi-Fi)
+- **Staging** : URL preview Vercel
+- **Prod** : URL canonique (ex. `https://lasso.app`)
+
+Pour changer, relancer `pnpm sync` (l'URL est figée dans le build natif).
 
 ---
 

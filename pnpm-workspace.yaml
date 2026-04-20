@@ -1,3 +1,6 @@
+packages:
+  - "mobile"
+
 enablePrePostScripts: true
 ignoredBuiltDependencies:
   - sharp
