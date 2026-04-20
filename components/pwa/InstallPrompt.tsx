@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Download, Share, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { isNative } from "@/lib/platform"
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -42,6 +43,7 @@ export function InstallPrompt() {
   const [isStandalone] = useState(() => {
     if (typeof window === "undefined") return false
     return (
+      isNative() ||
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as Navigator & { standalone?: boolean }).standalone ===
         true

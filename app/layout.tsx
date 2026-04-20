@@ -5,6 +5,7 @@ import { PostHogProvider } from "@/components/providers/PostHogProvider"
 import { QueryProvider } from "@/components/providers/QueryProvider"
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator"
 import { InstallPrompt } from "@/components/pwa/InstallPrompt"
+import { ServiceWorkerGuard } from "@/components/pwa/ServiceWorkerGuard"
 import "./globals.css"
 
 const jakarta = Plus_Jakarta_Sans({
@@ -71,6 +72,7 @@ export default function RootLayout({
         <SessionProvider>
           <QueryProvider>
             <PostHogProvider>
+              <ServiceWorkerGuard />
               <OfflineIndicator />
               {children}
               <InstallPrompt />
